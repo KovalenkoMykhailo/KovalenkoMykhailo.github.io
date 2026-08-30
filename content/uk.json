@@ -142,49 +142,49 @@
       {
         "name": "Charlie Quiz (AllRight)",
         "kind": "Тест-таск · Playwright + TypeScript",
-        "url": "https://github.com/KovalenkoMikhail/allright-charlie-quiz-e2e",
+        "url": "https://github.com/KovalenkoMykhailo/allright-charlie-quiz-e2e",
         "text": "Signup / quiz-воронка. Перевіряю бізнес-результат (юзер створений, trial завершений), а не фіксований клік-шлях. Heuristic walker тримає A/B UI; assert через API + UI. Smoke на PR, outcome-тести окремо."
       },
       {
         "name": "Pananames MCP",
         "kind": "Тест-таск · Playwright + TypeScript",
-        "url": "https://github.com/KovalenkoMikhail/pananames-playwright-tests",
+        "url": "https://github.com/KovalenkoMykhailo/pananames-playwright-tests",
         "text": "CRUD контактів і пошук домену → cart TOTAL. Логін один раз через storageState. Page objects і fixtures. Один worker — спільний акаунт і кошик."
       },
       {
         "name": "Playwright examples",
         "kind": "Пет-проєкт · Playwright + TypeScript",
-        "url": "https://github.com/KovalenkoMikhail/my-playwright-examples",
+        "url": "https://github.com/KovalenkoMykhailo/my-playwright-examples",
         "text": "Пет-сьют: POM, fixtures, UI та API, логін через API. Не комерційний продукт."
       },
       {
         "name": "IT lecture notes",
         "kind": "Конспект · 38 розділів",
-        "url": "https://github.com/KovalenkoMikhail/note-Advanced-web-automation-course",
+        "url": "https://github.com/KovalenkoMykhailo/note-Advanced-web-automation-course",
         "text": "Навчальні нотатки: мережа/HTTP, тестування і Playwright, Git/Jenkins, SQL і API, Java/JS. Глосарій 250+ термінів. Є на сторінці Конспект. Docker, Kubernetes, RabbitMQ тут — теми навчання, не основний комерційний стек."
       },
       {
         "name": "Calculator CLI (Java)",
         "kind": "Тест-таск · Java + JUnit 5 + Maven",
-        "url": "https://github.com/KovalenkoMikhail/calculator-project",
+        "url": "https://github.com/KovalenkoMykhailo/calculator-project",
         "text": "Тести CLI-калькулятора через echo | bc. Позитивні й негативні кейси: арифметика, float, ділення на нуль, поганий ввід. Запуск Maven; CI в GitHub Actions."
       },
       {
         "name": "Postman collections",
         "kind": "Тест-таски · Postman",
-        "url": "https://github.com/KovalenkoMikhail/postman",
+        "url": "https://github.com/KovalenkoMykhailo/postman",
         "text": "Колекції Postman з тестових завдань, зокрема TheCatAPI. Запити, перевірки, негативні кейси."
       },
       {
         "name": "practice-js",
         "kind": "Практика · JavaScript",
-        "url": "https://github.com/KovalenkoMikhail/practice-js",
+        "url": "https://github.com/KovalenkoMykhailo/practice-js",
         "text": "Задачки JS: LeetCode і Hyperskill. Для розминки перед live-coding, не продукт."
       },
       {
         "name": "example-my-JS-code",
         "kind": "Практика · JavaScript",
-        "url": "https://github.com/KovalenkoMikhail/example-my-JS-code",
+        "url": "https://github.com/KovalenkoMykhailo/example-my-JS-code",
         "text": "Рання практика JS. Тримую як слід, з чого починав, не як фреймворк."
       }
     ]

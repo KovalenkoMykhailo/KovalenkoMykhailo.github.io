@@ -18,11 +18,9 @@ Open http://127.0.0.1:4173/
 
 ## Live
 
-**https://kovalenkomikhail.github.io/**
+**https://kovalenkomykhailo.github.io/**
 
-User site on GitHub Pages (`KovalenkoMikhail.github.io`). No `/myCV/` in the path. Links do not use `index.html`.
-
-To use **https://kovalenkomykhailo.github.io/**, rename the GitHub username from `KovalenkoMikhail` to `KovalenkoMykhailo` in [account settings](https://github.com/settings/admin), then rename the Pages repo to `KovalenkoMykhailo.github.io`.
+GitHub Pages user site from repo `KovalenkoMykhailo.github.io`. No `/myCV/` in the path.
 
 ## Add contacts
 

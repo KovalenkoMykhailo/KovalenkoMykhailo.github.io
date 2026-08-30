@@ -19,43 +19,43 @@
   "featured": {
     "title": "IT lecture notes",
     "lead": "Публічний конспект для навчання і співбесід. Мережа, QA/Playwright, Git/Jenkins, SQL/API, Java/JS. Docker, Kubernetes і RabbitMQ є в нотатках як теми навчання — не мій основний комерційний стек.",
-    "url": "https://github.com/KovalenkoMikhail/note-Advanced-web-automation-course",
+    "url": "https://github.com/KovalenkoMykhailo/note-Advanced-web-automation-course",
     "cta": "Відкрити повний конспект на GitHub",
     "topics": [
       {
         "name": "Networking & HTTP",
         "text": "DNS, TCP/UDP, HTTP/1/2/3, OSI, SSH",
-        "url": "https://github.com/KovalenkoMikhail/note-Advanced-web-automation-course/blob/main/01_networking_protocols_http.md"
+        "url": "https://github.com/KovalenkoMykhailo/note-Advanced-web-automation-course/blob/main/01_networking_protocols_http.md"
       },
       {
         "name": "Testing & QA",
         "text": "Дизайн тестів, Playwright, Postman, JUnit, XPath",
-        "url": "https://github.com/KovalenkoMikhail/note-Advanced-web-automation-course/blob/main/02_testing_qa_automation.md"
+        "url": "https://github.com/KovalenkoMykhailo/note-Advanced-web-automation-course/blob/main/02_testing_qa_automation.md"
       },
       {
         "name": "Git, Jenkins, CI",
         "text": "Git, Git Flow, Jenkins. Docker/K8s — навчальні теми",
-        "url": "https://github.com/KovalenkoMikhail/note-Advanced-web-automation-course/blob/main/03_version_control_devops_cicd.md"
+        "url": "https://github.com/KovalenkoMykhailo/note-Advanced-web-automation-course/blob/main/03_version_control_devops_cicd.md"
       },
       {
         "name": "Databases & APIs",
         "text": "SQL/NoSQL, REST, JWT. RabbitMQ — навчальна тема",
-        "url": "https://github.com/KovalenkoMikhail/note-Advanced-web-automation-course/blob/main/04_databases_backend_apis.md"
+        "url": "https://github.com/KovalenkoMykhailo/note-Advanced-web-automation-course/blob/main/04_databases_backend_apis.md"
       },
       {
         "name": "Programming",
         "text": "Java, JavaScript, HTML, Linux, cookies/storage",
-        "url": "https://github.com/KovalenkoMikhail/note-Advanced-web-automation-course/blob/main/05_programming_fundamentals.md"
+        "url": "https://github.com/KovalenkoMykhailo/note-Advanced-web-automation-course/blob/main/05_programming_fundamentals.md"
       },
       {
         "name": "Glossary",
         "text": "250+ термінів, команди, HTTP-коди",
-        "url": "https://github.com/KovalenkoMikhail/note-Advanced-web-automation-course/blob/main/GLOSSARY.md"
+        "url": "https://github.com/KovalenkoMykhailo/note-Advanced-web-automation-course/blob/main/GLOSSARY.md"
       },
       {
         "name": "Learning paths",
         "text": "QA, backend, DevOps, full-stack — з чого почати",
-        "url": "https://github.com/KovalenkoMikhail/note-Advanced-web-automation-course/blob/main/TABLE_OF_CONTENTS.md"
+        "url": "https://github.com/KovalenkoMykhailo/note-Advanced-web-automation-course/blob/main/TABLE_OF_CONTENTS.md"
       }
     ]
   },

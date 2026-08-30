@@ -1,0 +1,104 @@
+{
+  "metaTitle": "Notes — Mykhailo Kovalenko",
+  "metaDescription": "Interview notes plus a public IT conspect: networking, QA, Git/Jenkins, SQL, APIs, Java and JS.",
+  "nav": {
+    "home": "CV",
+    "notes": "Notes",
+    "qa": "Q&A",
+    "experience": "Experience",
+    "skills": "Skills",
+    "contacts": "Contact",
+    "download": "Download CV",
+    "print": "Print / Save PDF"
+  },
+  "title": "Notes",
+  "intro": "Short interview notes live here. The full conspect is on GitHub: 38 sections, glossary, learning paths.",
+  "qaCta": "Go to interview Q&A",
+  "featured": {
+    "title": "IT lecture notes",
+    "lead": "My public conspect for interviews and study. Networking, QA/Playwright, Git/Jenkins, SQL/API, Java/JS. Docker, Kubernetes and RabbitMQ are in the notes as study topics — not my main commercial stack.",
+    "url": "https://github.com/KovalenkoMikhail/note-Advanced-web-automation-course",
+    "cta": "Open the full conspect on GitHub",
+    "topics": [
+      {
+        "name": "Networking & HTTP",
+        "text": "DNS, TCP/UDP, HTTP/1/2/3, OSI, SSH",
+        "url": "https://github.com/KovalenkoMikhail/note-Advanced-web-automation-course/blob/main/01_networking_protocols_http.md"
+      },
+      {
+        "name": "Testing & QA",
+        "text": "Test design, Playwright, Postman, JUnit, XPath",
+        "url": "https://github.com/KovalenkoMikhail/note-Advanced-web-automation-course/blob/main/02_testing_qa_automation.md"
+      },
+      {
+        "name": "Git, Jenkins, CI",
+        "text": "Git, Git Flow, Jenkins. Docker/K8s — study notes",
+        "url": "https://github.com/KovalenkoMikhail/note-Advanced-web-automation-course/blob/main/03_version_control_devops_cicd.md"
+      },
+      {
+        "name": "Databases & APIs",
+        "text": "SQL/NoSQL, REST, JWT. RabbitMQ — study notes",
+        "url": "https://github.com/KovalenkoMikhail/note-Advanced-web-automation-course/blob/main/04_databases_backend_apis.md"
+      },
+      {
+        "name": "Programming",
+        "text": "Java, JavaScript, HTML, Linux, cookies/storage",
+        "url": "https://github.com/KovalenkoMikhail/note-Advanced-web-automation-course/blob/main/05_programming_fundamentals.md"
+      },
+      {
+        "name": "Glossary",
+        "text": "250+ terms, commands, HTTP codes",
+        "url": "https://github.com/KovalenkoMikhail/note-Advanced-web-automation-course/blob/main/GLOSSARY.md"
+      },
+      {
+        "name": "Learning paths",
+        "text": "QA, backend, DevOps, full-stack — what to read first",
+        "url": "https://github.com/KovalenkoMikhail/note-Advanced-web-automation-course/blob/main/TABLE_OF_CONTENTS.md"
+      }
+    ]
+  },
+  "sections": [
+    {
+      "title": "How I prepare",
+      "paragraphs": [
+        "I do not try to learn every tool from a job description. I refresh the stack I actually used: Playwright, API, SQL, CI, and how I explain the QA process.",
+        "I keep two versions of answers. Ukrainian is how I think. English is spoken: short sentences, one idea each, with real technical words (fixtures, storageState, 401).",
+        "I practice the story of the work, not only tool names: first QA on a project, what I automated and why, how I look for a root cause."
+      ]
+    },
+    {
+      "title": "What I am learning now",
+      "paragraphs": [
+        "Interview prep around Playwright: fixtures, storageState, APIRequest, locators that stay stable, why a test is flaky.",
+        "How to explain a framework and Jenkins jobs (merge request, branch, nightly) in a clear way.",
+        "Spoken English for work answers. My level is Intermediate / B1. I say that honestly.",
+        "SQL and API checks for defect investigation — QA-level, not DBA or performance specialist work."
+      ]
+    },
+    {
+      "title": "Playwright — short conspect",
+      "paragraphs": [
+        "This is my main automation stack now: TypeScript and Playwright. I use it for UI, API (APIRequest), and end-to-end flows.",
+        "Framework shape I use: OOP, page objects, fixtures. Login is not repeated in every test when storageState can hold the session (cookies / auth).",
+        "I look at locators, frames, parallel runs, and flaky tests as part of the job, not as a surprise at the end.",
+        "I also used Java, Selenium, and Maven in commercial work at RIA.com. At Clear Junction and FRACTAL I used TypeScript and Playwright. Playwright is what I use today."
+      ]
+    },
+    {
+      "title": "What I automate — and what I do not",
+      "paragraphs": [
+        "I automate flows that run often and must stay green in CI: regression, critical UI + API paths, repeated setup.",
+        "I do not automate everything. A test that is weak, tied to a random UI, or expensive to keep is worse than a short manual check.",
+        "A useful automated test is one the team can trust after a merge, not a screenshot of a click path that breaks every sprint."
+      ]
+    },
+    {
+      "title": "How I use Cursor",
+      "paragraphs": [
+        "I use Cursor every day. I read generated code. I do not merge it blindly.",
+        "AI helps with boilerplate and first drafts. I still own locators, waits, test data, and whether the assertion matches the real risk."
+      ]
+    }
+  ],
+  "footer": "Mykhailo Kovalenko · Senior General QA Engineer"
+}

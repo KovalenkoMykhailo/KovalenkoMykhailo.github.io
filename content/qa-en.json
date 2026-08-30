@@ -1,0 +1,155 @@
+{
+  "metaTitle": "Interview Q&A — Mykhailo Kovalenko",
+  "metaDescription": "Spoken English answers for QA Automation interviews. Short sentences, as I would say them.",
+  "nav": {
+    "home": "CV",
+    "notes": "Notes",
+    "qa": "Q&A",
+    "experience": "Experience",
+    "skills": "Skills",
+    "contacts": "Contact",
+    "download": "Download CV",
+    "print": "Print / Save PDF"
+  },
+  "title": "Interview Q&A",
+  "badge": "Spoken English answers",
+  "intro": "These are answers I can say out loud. Short sentences. Simple words. I keep real tool names: fixtures, storageState, 401. This is not the same English as the CV page.",
+  "searchPlaceholder": "Filter questions…",
+  "emptyFilter": "No questions match this filter.",
+  "notesCta": "Back to notes",
+  "groups": [
+    {
+      "id": "about",
+      "title": "About me",
+      "items": [
+        {
+          "q": "Tell me about yourself",
+          "a": "I am a Senior General QA Engineer. I have more than five years in testing. First I was a manual QA. Then I moved to automation. My main tools are TypeScript, Playwright, Postman, SQL and Jenkins. I test UI and API. I also build test frameworks and run tests in CI. I have FinTech experience. I worked on a B2B payment platform in Access and Identity."
+        },
+        {
+          "q": "Why do you want a new job?",
+          "a": "I want a challenging product. I want more impact on automation and QA processes."
+        },
+        {
+          "q": "Why QA?",
+          "a": "I started IT at university. I liked testing. It is technical and also analysis. Then I moved to automation and process work."
+        },
+        {
+          "q": "What is your English level?",
+          "a": "My English is Intermediate. B1. I can speak about my work. I use short sentences."
+        }
+      ]
+    },
+    {
+      "id": "process",
+      "title": "Process",
+      "items": [
+        {
+          "q": "What was your biggest challenge?",
+          "a": "I was the first QA on a project. I built the process, docs, and regression. Then I added automation and CI/CD."
+        },
+        {
+          "q": "How do you investigate a bug?",
+          "a": "First I reproduce the bug. Then I check logs, API, network and DB. I look for the root cause, not only the bug. I ask a developer if I need help."
+        },
+        {
+          "q": "How do you work with deadlines?",
+          "a": "I look at priority and risk first. If I cannot finish all work, I say it early."
+        },
+        {
+          "q": "How do you communicate with the team?",
+          "a": "I write in messenger. If it is complex, I call. I explain clearly with the info people need."
+        }
+      ]
+    },
+    {
+      "id": "automation",
+      "title": "Automation",
+      "items": [
+        {
+          "q": "What is your main stack?",
+          "a": "Now I use TypeScript and Playwright. I test UI and API. I use POM. Tests run in Jenkins. I use Allure for reports. At RIA.com I used Java, Selenium and Maven."
+        },
+        {
+          "q": "How do you build a test framework?",
+          "a": "I build a framework with TypeScript, Playwright, OOP and POM. Tests run in Jenkins. I use Allure for reports. At Clear Junction I built the framework from scratch."
+        },
+        {
+          "q": "What do you automate?",
+          "a": "I do not automate everything. I automate stable and important flows. The test must work in CI."
+        },
+        {
+          "q": "How do you work with flaky tests?",
+          "a": "I check locators, timing, test data and the environment. I do not hide the problem with extra waits. I look for the real cause."
+        },
+        {
+          "q": "Do you use AI in QA?",
+          "a": "I use Cursor every day. I read all generated code. I never trust it blindly."
+        }
+      ]
+    },
+    {
+      "id": "api",
+      "title": "API, SQL, CI",
+      "items": [
+        {
+          "q": "How do you test APIs?",
+          "a": "I use Postman and Playwright API. I check status codes, headers and auth. I also do negative cases. Sometimes I check API data with DB."
+        },
+        {
+          "q": "What about SQL?",
+          "a": "I use SQL as a QA. I check data, prepare test data and investigate bugs. I am not a DBA."
+        },
+        {
+          "q": "What CI tools did you use?",
+          "a": "I use Jenkins, GitLab CI and GitHub Actions. I work with Git every day: branches, PRs and review."
+        },
+        {
+          "q": "Do you have FinTech experience?",
+          "a": "Yes. I worked on a B2B payment platform. I tested Access and Identity: clients, accounts, roles and permissions. I also tested APIs and integrations. I am not a payment-provider-flow expert."
+        },
+        {
+          "q": "Do you do mobile automation?",
+          "a": "I did some functional testing on mobile, for example registration. I am not a mobile automation specialist. I do not use Appium as my main skill."
+        }
+      ]
+    },
+    {
+      "id": "notes",
+      "title": "Notes and theory",
+      "items": [
+        {
+          "q": "Where is your full conspect?",
+          "a": "On GitHub. Repo note-Advanced-web-automation-course. 38 sections. Networking, testing, Git, Jenkins, SQL, APIs, Java and JS. There is a glossary. I also have a short Notes page on this site."
+        },
+        {
+          "q": "Why POM?",
+          "a": "POM keeps locators and actions in one place. If the UI changes, I fix the page, not every test. I used POM in Playwright test tasks and at work."
+        },
+        {
+          "q": "Which HTTP codes do you use as a QA?",
+          "a": "200 is OK. 201 is created. 400 is bad request. 401 is no auth. 403 is no permission. 404 is not found. 500 is server error. I check the code and the body. I keep a full list in my glossary."
+        },
+        {
+          "q": "Do you know Docker and Kubernetes?",
+          "a": "I have study notes on Docker and Kubernetes. I do not have strong commercial experience with them. My CI at work was Jenkins. I say this honestly."
+        },
+        {
+          "q": "What is mock and stub?",
+          "a": "A stub gives a ready answer. A mock also checks how you call it. I use this idea when API or UI is not ready. I wrote this in my testing notes."
+        }
+      ]
+    },
+    {
+      "id": "recruiter",
+      "title": "Questions I ask",
+      "items": [
+        {
+          "q": "What do you usually ask a recruiter?",
+          "a": "I ask about the QA team size. I ask how many people do manual tests and how many do automation. I ask if there is a QA Lead. I ask how QA works with developers. I ask about automation coverage. I ask what they expect in the first one to three months. I ask about the interview steps. I ask about English. I ask how much time is manual and how much is automation."
+        }
+      ]
+    }
+  ],
+  "footer": "Mykhailo Kovalenko · Senior General QA Engineer"
+}

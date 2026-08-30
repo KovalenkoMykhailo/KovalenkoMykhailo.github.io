@@ -1,0 +1,104 @@
+{
+  "metaTitle": "Конспект — Михайло Коваленко",
+  "metaDescription": "Нотатки до співбесіди і публічний IT-конспект: мережа, QA, Git/Jenkins, SQL, API, Java і JS.",
+  "nav": {
+    "home": "CV",
+    "notes": "Конспект",
+    "qa": "Q&A",
+    "experience": "Досвід",
+    "skills": "Скіли",
+    "contacts": "Контакти",
+    "download": "Завантажити CV",
+    "print": "Друк / PDF"
+  },
+  "title": "Конспект",
+  "intro": "Тут короткі нотатки до співбесіди. Повний конспект — на GitHub: 38 розділів, глосарій, шляхи навчання.",
+  "qaCta": "До банку Q&A",
+  "featured": {
+    "title": "IT lecture notes",
+    "lead": "Публічний конспект для навчання і співбесід. Мережа, QA/Playwright, Git/Jenkins, SQL/API, Java/JS. Docker, Kubernetes і RabbitMQ є в нотатках як теми навчання — не мій основний комерційний стек.",
+    "url": "https://github.com/KovalenkoMikhail/note-Advanced-web-automation-course",
+    "cta": "Відкрити повний конспект на GitHub",
+    "topics": [
+      {
+        "name": "Networking & HTTP",
+        "text": "DNS, TCP/UDP, HTTP/1/2/3, OSI, SSH",
+        "url": "https://github.com/KovalenkoMikhail/note-Advanced-web-automation-course/blob/main/01_networking_protocols_http.md"
+      },
+      {
+        "name": "Testing & QA",
+        "text": "Дизайн тестів, Playwright, Postman, JUnit, XPath",
+        "url": "https://github.com/KovalenkoMikhail/note-Advanced-web-automation-course/blob/main/02_testing_qa_automation.md"
+      },
+      {
+        "name": "Git, Jenkins, CI",
+        "text": "Git, Git Flow, Jenkins. Docker/K8s — навчальні теми",
+        "url": "https://github.com/KovalenkoMikhail/note-Advanced-web-automation-course/blob/main/03_version_control_devops_cicd.md"
+      },
+      {
+        "name": "Databases & APIs",
+        "text": "SQL/NoSQL, REST, JWT. RabbitMQ — навчальна тема",
+        "url": "https://github.com/KovalenkoMikhail/note-Advanced-web-automation-course/blob/main/04_databases_backend_apis.md"
+      },
+      {
+        "name": "Programming",
+        "text": "Java, JavaScript, HTML, Linux, cookies/storage",
+        "url": "https://github.com/KovalenkoMikhail/note-Advanced-web-automation-course/blob/main/05_programming_fundamentals.md"
+      },
+      {
+        "name": "Glossary",
+        "text": "250+ термінів, команди, HTTP-коди",
+        "url": "https://github.com/KovalenkoMikhail/note-Advanced-web-automation-course/blob/main/GLOSSARY.md"
+      },
+      {
+        "name": "Learning paths",
+        "text": "QA, backend, DevOps, full-stack — з чого почати",
+        "url": "https://github.com/KovalenkoMikhail/note-Advanced-web-automation-course/blob/main/TABLE_OF_CONTENTS.md"
+      }
+    ]
+  },
+  "sections": [
+    {
+      "title": "Як готуюся до співбесід",
+      "paragraphs": [
+        "Не вчу всі тули з вакансії підряд. Повторюю те, чим реально працював: Playwright, API, SQL, CI і як пояснюю QA-процес.",
+        "Тримаю дві версії відповідей. Українською — як думаю. Англійською — spoken: короткі речення, одна думка, технічні слова як є (fixtures, storageState, 401).",
+        "Треную історію роботи, не лише список інструментів: перший QA на проєкті, що автоматизував і навіщо, як шукаю root cause."
+      ]
+    },
+    {
+      "title": "Що вчу зараз",
+      "paragraphs": [
+        "Підготовка по Playwright: fixtures, storageState, APIRequest, стабільні локатори, чому тест flaky.",
+        "Як спокійно пояснити фреймворк і джоби в Jenkins (merge request, гілка, nightly).",
+        "Spoken English для робочих відповідей. Рівень — Intermediate / B1. Так і кажу.",
+        "SQL і API для розбору дефектів — рівень QA, не DBA і не perf-спеціаліст."
+      ]
+    },
+    {
+      "title": "Playwright — короткий конспект",
+      "paragraphs": [
+        "Це мій основний стек автоматизації зараз: TypeScript і Playwright. UI, API (APIRequest), end-to-end.",
+        "Форма фреймворку: OOP, page objects, fixtures. Логін не повторюю в кожному тесті, якщо session можна тримати в storageState (cookies / auth).",
+        "Локатори, frames, паралельний запуск і flaky — частина роботи, не сюрприз в кінці.",
+        "Раніше в комерції на RIA.com були Java, Selenium і Maven. На Clear Junction і FRACTAL — TypeScript і Playwright. Сьогодні працюю з Playwright."
+      ]
+    },
+    {
+      "title": "Що автоматизую — і що ні",
+      "paragraphs": [
+        "Автоматизую те, що часто ганяємо і що має бути зеленим у CI: регресія, критичні UI + API потоки, повторюваний сетап.",
+        "Не автоматизую все. Слабкий тест, прив’язаний до випадкового UI або дорогий у підтримці, гірший за коротку ручну перевірку.",
+        "Корисний автотест — той, якому команда вірить після мерджу, а не скріншот кліків, який падає щоспринт."
+      ]
+    },
+    {
+      "title": "Як користуюся Cursor",
+      "paragraphs": [
+        "Cursor — щодня. Згенерований код читаю. Наосліп не мерджу.",
+        "AI допомагає з бойлерплейтом і першим драфтом. Локатори, waits, тестові дані і чи assert б’є в реальний ризик — моя відповідальність."
+      ]
+    }
+  ],
+  "footer": "Михайло Коваленко · Senior General QA Engineer"
+}

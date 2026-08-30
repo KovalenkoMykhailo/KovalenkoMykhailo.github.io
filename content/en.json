@@ -1,0 +1,199 @@
+{
+  "metaTitle": "Mykhailo Kovalenko — Senior General QA Engineer",
+  "metaDescription": "Senior General QA Engineer. TypeScript, Playwright, API and UI testing. FinTech experience. Remote, relocate, Dnipro.",
+  "nav": {
+    "home": "CV",
+    "notes": "Notes",
+    "qa": "Q&A",
+    "experience": "Experience",
+    "skills": "Skills",
+    "contacts": "Contact",
+    "download": "Download CV",
+    "print": "Print / Save PDF"
+  },
+  "hero": {
+    "name": "Mykhailo Kovalenko",
+    "role": "Senior General QA Engineer",
+    "location": "Remote · Relocate · Dnipro",
+    "pitch": "I test UI and APIs, build automation with TypeScript and Playwright, and run it in Jenkins. I also write test docs and check data with SQL."
+  },
+  "terminal": {
+    "title": "MykhailoKovalenko — zsh",
+    "prompt": "MykhailoKovalenko:~$",
+    "label": "Portfolio terminal",
+    "lines": [
+      { "type": "cmd", "text": "whoami" },
+      { "type": "out", "text": "Mykhailo Kovalenko" },
+      { "type": "cmd", "text": "cat ./portfolio.md" },
+      { "type": "out", "text": "# This is my portfolio" },
+      { "type": "out", "text": "Senior General QA Engineer" },
+      { "type": "cmd", "text": "echo $STACK" },
+      { "type": "out", "text": "TypeScript · Playwright · Jenkins" },
+      { "type": "cmd", "text": "echo $STATUS" },
+      { "type": "out", "text": "open to remote roles" }
+    ]
+  },
+  "about": {
+    "title": "About",
+    "paragraphs": [
+      "I work as a Senior General QA Engineer: functional testing, UI, API, automation, and test documentation.",
+      "My current stack is TypeScript and Playwright for UI, API, and E2E tests. I started automation with Java, Selenium, and Maven.",
+      "I have FinTech experience on a B2B payment platform, in the Access & Identity team: access, accounts, roles, and corporate client operations. I do not position myself as a payment-provider-flow specialist.",
+      "I care about a framework the team can trust in CI, fewer flaky tests, and less manual regression — not about automating everything."
+    ]
+  },
+  "now": {
+    "title": "Now",
+    "body": "I am preparing for interviews: Playwright, API, SQL, and how I explain the framework and Jenkins. Short notes and spoken answers live on separate pages.",
+    "notesLink": "Open notes",
+    "qaLink": "Open Q&A"
+  },
+  "experience": {
+    "title": "Experience",
+    "jobs": [
+      {
+        "company": "FRACTAL",
+        "role": "Senior General QA Engineer",
+        "period": "Apr 2025 – May 2026",
+        "place": "",
+        "points": [
+          "Designed and maintained a scalable test automation framework with TypeScript and Playwright.",
+          "Developed 300+ automated tests covering UI, API, and E2E scenarios. Reached 90% automation coverage across core services.",
+          "Reduced manual regression testing time by 70% through automation.",
+          "Integrated automated tests into CI/CD with Jenkins. Used Allure for reports.",
+          "Created and maintained test scenarios, test cases, and regression suites. Tested APIs with Postman and checked data with SQL.",
+          "Worked with backend, frontend, and QA. Tested account management: roles, permissions, and access control."
+        ],
+        "stack": "TypeScript, Playwright, Jenkins, Postman, SQL, Allure"
+      },
+      {
+        "company": "Clear Junction",
+        "role": "Access & Identity · B2B payment platform",
+        "period": "Feb 2022 – Apr 2025",
+        "place": "",
+        "points": [
+          "Built an automation framework from scratch with TypeScript and Playwright.",
+          "Automated UI and API tests with OOP and Page Object Model (POM). Put the suite into Jenkins CI/CD.",
+          "Improved stability by finding and reducing flaky tests.",
+          "Automated database data collection and generated Slack reports.",
+          "Tested fintech workflows: user access, account structures, roles and permissions, corporate client operations.",
+          "Worked with developers and product through the full SDLC."
+        ],
+        "stack": "TypeScript, Playwright, Jenkins, Postman, SQL, Allure"
+      },
+      {
+        "company": "RIA.com",
+        "role": "QA Engineer",
+        "period": "Dec 2020 – Feb 2022",
+        "place": "",
+        "points": [
+          "Functional, regression, integration, and UI testing.",
+          "Created and maintained automated tests with Java, Selenium, and Maven.",
+          "Checked data in the database with SQL.",
+          "Wrote test documentation: test cases, checklists, and bug reports."
+        ],
+        "stack": "Java, Selenium, Maven, Allure, Jenkins, SQL"
+      }
+    ]
+  },
+  "skills": {
+    "title": "Skills and tools",
+    "groups": [
+      {
+        "name": "Automation",
+        "items": ["TypeScript (Playwright)", "Java (Selenium)", "UI testing", "API testing", "E2E testing", "Page Object Model (POM)"]
+      },
+      {
+        "name": "Databases",
+        "items": ["PostgreSQL", "NoSQL", "SQL"]
+      },
+      {
+        "name": "Tools",
+        "items": ["Postman", "Chrome DevTools", "Charles Proxy", "Sentry", "Allure"]
+      },
+      {
+        "name": "CI",
+        "items": ["Jenkins", "Git"]
+      },
+      {
+        "name": "Documentation",
+        "items": ["Test cases", "Checklists", "Bug reports", "Test plan"]
+      },
+      {
+        "name": "Language",
+        "items": ["English — Intermediate"]
+      }
+    ]
+  },
+  "education": {
+    "title": "Education",
+    "items": ["Master’s in Industrial Engineering — NTU KPI (2017–2022)"]
+  },
+  "hobbies": {
+    "title": "Hobbies",
+    "items": ["Bass guitar", "Podcasts and educational courses about QA and IT"]
+  },
+  "projects": {
+    "title": "Portfolio",
+    "intro": "Public GitHub work: test tasks, a pet project, practice, and lecture notes. Not employment.",
+    "items": [
+      {
+        "name": "Charlie Quiz (AllRight)",
+        "kind": "Test task · Playwright + TypeScript",
+        "url": "https://github.com/KovalenkoMikhail/allright-charlie-quiz-e2e",
+        "text": "Signup / quiz funnel. I test the business result (user created, trial funnel finished), not a fixed click path. A heuristic walker handles A/B UI; asserts go through API + UI. Smoke on PR, outcome tests separately."
+      },
+      {
+        "name": "Pananames MCP",
+        "kind": "Test task · Playwright + TypeScript",
+        "url": "https://github.com/KovalenkoMikhail/pananames-playwright-tests",
+        "text": "Contacts CRUD and domain search → cart TOTAL. Login once via storageState. Page objects and fixtures. One worker, because the account and cart are shared."
+      },
+      {
+        "name": "Playwright examples",
+        "kind": "Pet project · Playwright + TypeScript",
+        "url": "https://github.com/KovalenkoMikhail/my-playwright-examples",
+        "text": "Pet suite: POM, fixtures, UI and API tests, API login. Not a commercial product."
+      },
+      {
+        "name": "IT lecture notes",
+        "kind": "Conspect · 38 sections",
+        "url": "https://github.com/KovalenkoMikhail/note-Advanced-web-automation-course",
+        "text": "My study notes: networking/HTTP, testing and Playwright, Git/Jenkins, SQL and APIs, Java/JS. Glossary with 250+ terms. Also on the Notes page. Docker, Kubernetes, RabbitMQ here are study topics, not my main commercial stack."
+      },
+      {
+        "name": "Calculator CLI (Java)",
+        "kind": "Test task · Java + JUnit 5 + Maven",
+        "url": "https://github.com/KovalenkoMikhail/calculator-project",
+        "text": "Tests for a CLI calculator via echo | bc. Positive and negative cases: arithmetic, floats, division by zero, bad input. Runs with Maven; GitHub Actions CI."
+      },
+      {
+        "name": "Postman collections",
+        "kind": "Test tasks · Postman",
+        "url": "https://github.com/KovalenkoMikhail/postman",
+        "text": "Postman collections from test tasks, including TheCatAPI. Requests, checks, negative cases."
+      },
+      {
+        "name": "practice-js",
+        "kind": "Practice · JavaScript",
+        "url": "https://github.com/KovalenkoMikhail/practice-js",
+        "text": "Small JS tasks: LeetCode and Hyperskill. For live-coding warm-up, not a product."
+      },
+      {
+        "name": "example-my-JS-code",
+        "kind": "Practice · JavaScript",
+        "url": "https://github.com/KovalenkoMikhail/example-my-JS-code",
+        "text": "Early JS practice file. I keep it as a trace of how I started, not as a framework."
+      }
+    ]
+  },
+  "contact": {
+    "title": "Contact",
+    "empty": "Email, LinkedIn, Telegram, and GitHub will appear here soon.",
+    "email": "Email",
+    "linkedin": "LinkedIn",
+    "telegram": "Telegram",
+    "github": "GitHub"
+  },
+  "footer": "Mykhailo Kovalenko · Senior General QA Engineer"
+}

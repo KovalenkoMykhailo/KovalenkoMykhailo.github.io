@@ -1,0 +1,4 @@
+# PDF resumes live in this folder.
+
+# Linked from content/site.json:
+#   "pdf": "cv/Kovalenko_Mykhailo_Senior_General_QA_Engineer.pdf"

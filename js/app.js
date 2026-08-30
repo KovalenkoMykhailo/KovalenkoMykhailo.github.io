@@ -72,6 +72,72 @@
     return base + path;
   }
 
+  const CV_SECTIONS = ["top", "experience", "skills", "contact"];
+
+  function hashId() {
+    return (location.hash || "").replace("#", "");
+  }
+
+  function setCvNavCurrent(id) {
+    document.querySelectorAll("[data-cv-section]").forEach((link) => {
+      if (link.dataset.cvSection === id) {
+        link.setAttribute("aria-current", id === "top" ? "page" : "location");
+      } else {
+        link.removeAttribute("aria-current");
+      }
+    });
+  }
+
+  function highlightSection(id) {
+    document.querySelectorAll("main > section.is-target").forEach((node) => {
+      node.classList.remove("is-target");
+    });
+    if (!id || id === "top") return;
+    const node = document.getElementById(id);
+    if (!node) return;
+    void node.offsetWidth;
+    node.classList.add("is-target");
+  }
+
+  function scrollToHash() {
+    const id = hashId();
+    if (!id) return;
+    const node = document.getElementById(id);
+    if (!node) return;
+    node.scrollIntoView({ behavior: "instant", block: "start" });
+    setCvNavCurrent(CV_SECTIONS.includes(id) ? id : "top");
+    highlightSection(id);
+  }
+
+  function goToCvSection(id, event) {
+    if (page !== "home") return;
+    event.preventDefault();
+    const node = document.getElementById(id);
+    if (!node) return;
+    node.scrollIntoView({ behavior: "smooth", block: "start" });
+    history.pushState(null, "", "#" + id);
+    setCvNavCurrent(id);
+    highlightSection(id);
+  }
+
+  function watchCvSections() {
+    if (page !== "home") return;
+    const nodes = CV_SECTIONS.map((id) => document.getElementById(id)).filter(Boolean);
+    if (!nodes.length || !("IntersectionObserver" in window)) return;
+    const observer = new IntersectionObserver(
+      (entries) => {
+        const visible = entries
+          .filter((entry) => entry.isIntersecting)
+          .sort((a, b) => b.intersectionRatio - a.intersectionRatio)[0];
+        if (visible) setCvNavCurrent(visible.target.id);
+      },
+      { rootMargin: "-28% 0px -58% 0px", threshold: [0.1, 0.25, 0.5] }
+    );
+    nodes.forEach((node) => observer.observe(node));
+    window.addEventListener("hashchange", scrollToHash);
+    window.addEventListener("popstate", scrollToHash);
+  }
+
   const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
   function startTerminal(term, mount) {
@@ -204,33 +270,47 @@
       el("div", { class: "header-inner" }, [
         el("a", { class: "brand", href: href("index.html"), text: "MK" }),
         el("nav", { class: "nav", "aria-label": "Main" }, [
-          el("a", {
-            href: href("index.html"),
-            text: nav.home,
-            "aria-current": page === "home" ? "page" : null,
-          }),
-          el("a", {
-            href: href("index.html") + "#experience",
-            text: nav.experience,
-          }),
-          el("a", {
-            href: href("index.html") + "#skills",
-            text: nav.skills,
-          }),
-          el("a", {
-            href: href("index.html") + "#contact",
-            text: nav.contacts,
-          }),
-          el("a", {
-            href: href("notes/index.html"),
-            text: nav.notes,
-            "aria-current": page === "notes" ? "page" : null,
-          }),
-          el("a", {
-            href: href("qa/index.html"),
-            text: nav.qa,
-            "aria-current": page === "qa" ? "page" : null,
-          }),
+          el("div", { class: "nav-group", "aria-label": nav.onPage || "On this page" }, [
+            el("a", {
+              href: href("index.html") + "#top",
+              text: nav.home,
+              "data-cv-section": "top",
+              "aria-current": page === "home" && !hashId() ? "page" : null,
+              onClick: (event) => goToCvSection("top", event),
+            }),
+            el("a", {
+              href: href("index.html") + "#experience",
+              text: nav.experience,
+              "data-cv-section": "experience",
+              onClick: (event) => goToCvSection("experience", event),
+            }),
+            el("a", {
+              href: href("index.html") + "#skills",
+              text: nav.skills,
+              "data-cv-section": "skills",
+              onClick: (event) => goToCvSection("skills", event),
+            }),
+            el("a", {
+              href: href("index.html") + "#contact",
+              text: nav.contacts,
+              "data-cv-section": "contact",
+              onClick: (event) => goToCvSection("contact", event),
+            }),
+          ]),
+          el("span", { class: "nav-split", "aria-hidden": "true" }),
+          el("div", { class: "nav-group nav-pages", "aria-label": nav.pages || "Pages" }, [
+            el("span", { class: "nav-pages-label", text: nav.pages || "Pages" }),
+            el("a", {
+              href: href("notes/index.html"),
+              text: nav.notes,
+              "aria-current": page === "notes" ? "page" : null,
+            }),
+            el("a", {
+              href: href("qa/index.html"),
+              text: nav.qa,
+              "aria-current": page === "qa" ? "page" : null,
+            }),
+          ]),
         ]),
         actions,
       ])
@@ -249,7 +329,7 @@
     const term = renderTerminal(data.terminal);
     const main = document.getElementById("main");
     main.replaceChildren(
-      el("section", { class: "hero" }, [
+      el("section", { class: "hero", id: "top" }, [
         el("div", { class: "hero-copy" }, [
           el("h1", { text: data.hero.name }),
           el("p", { class: "role", text: data.hero.role }),
@@ -531,7 +611,11 @@
       renderHeader(data.nav, site, lang);
       if (page === "notes") renderNotes(data);
       else if (page === "qa") renderQa(data);
-      else renderHome(data, site);
+      else {
+        renderHome(data, site);
+        scrollToHash();
+        watchCvSections();
+      }
       renderFooter(data.footer);
     } catch (error) {
       document.getElementById("main").replaceChildren(

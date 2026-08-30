@@ -72,6 +72,20 @@
     return base + path;
   }
 
+  function homeHref(hash) {
+    const root = page === "home" ? "./" : base;
+    if (!hash || hash === "top") return root;
+    return root + "#" + hash;
+  }
+
+  function notesHref() {
+    return page === "notes" ? "./" : base + "notes/";
+  }
+
+  function qaHref() {
+    return page === "qa" ? "./" : base + "qa/";
+  }
+
   const CV_SECTIONS = ["top", "experience", "skills", "contact"];
 
   function hashId() {
@@ -115,7 +129,8 @@
     const node = document.getElementById(id);
     if (!node) return;
     node.scrollIntoView({ behavior: "smooth", block: "start" });
-    history.pushState(null, "", "#" + id);
+    const path = location.pathname.replace(/index\.html$/, "") || "./";
+    history.pushState(null, "", id === "top" ? path : path + "#" + id);
     setCvNavCurrent(id);
     highlightSection(id);
   }
@@ -268,30 +283,30 @@
     const header = document.getElementById("site-header");
     header.replaceChildren(
       el("div", { class: "header-inner" }, [
-        el("a", { class: "brand", href: href("index.html"), text: "MK" }),
+        el("a", { class: "brand", href: homeHref(), text: "MK" }),
         el("nav", { class: "nav", "aria-label": "Main" }, [
           el("div", { class: "nav-group", "aria-label": nav.onPage || "On this page" }, [
             el("a", {
-              href: href("index.html") + "#top",
+              href: homeHref(),
               text: nav.home,
               "data-cv-section": "top",
               "aria-current": page === "home" && !hashId() ? "page" : null,
               onClick: (event) => goToCvSection("top", event),
             }),
             el("a", {
-              href: href("index.html") + "#experience",
+              href: homeHref("experience"),
               text: nav.experience,
               "data-cv-section": "experience",
               onClick: (event) => goToCvSection("experience", event),
             }),
             el("a", {
-              href: href("index.html") + "#skills",
+              href: homeHref("skills"),
               text: nav.skills,
               "data-cv-section": "skills",
               onClick: (event) => goToCvSection("skills", event),
             }),
             el("a", {
-              href: href("index.html") + "#contact",
+              href: homeHref("contact"),
               text: nav.contacts,
               "data-cv-section": "contact",
               onClick: (event) => goToCvSection("contact", event),
@@ -301,12 +316,12 @@
           el("div", { class: "nav-group nav-pages", "aria-label": nav.pages || "Pages" }, [
             el("span", { class: "nav-pages-label", text: nav.pages || "Pages" }),
             el("a", {
-              href: href("notes/index.html"),
+              href: notesHref(),
               text: nav.notes,
               "aria-current": page === "notes" ? "page" : null,
             }),
             el("a", {
-              href: href("qa/index.html"),
+              href: qaHref(),
               text: nav.qa,
               "aria-current": page === "qa" ? "page" : null,
             }),
@@ -352,12 +367,12 @@
                 : null,
             el("a", {
               class: "btn btn-ghost",
-              href: href("notes/index.html"),
+              href: notesHref(),
               text: data.now.notesLink,
             }),
             el("a", {
               class: "btn btn-ghost",
-              href: href("qa/index.html"),
+              href: qaHref(),
               text: data.now.qaLink,
             }),
           ]),
@@ -375,12 +390,12 @@
           el("div", { class: "now-links" }, [
             el("a", {
               class: "btn btn-primary",
-              href: href("notes/index.html"),
+              href: notesHref(),
               text: data.now.notesLink,
             }),
             el("a", {
               class: "btn btn-ghost",
-              href: href("qa/index.html"),
+              href: qaHref(),
               text: data.now.qaLink,
             }),
           ]),
@@ -516,7 +531,7 @@
           el("div", { class: "hero-actions" }, [
             el("a", {
               class: "btn btn-primary",
-              href: href("qa/index.html"),
+              href: qaHref(),
               text: data.qaCta,
             }),
           ]),
@@ -572,7 +587,7 @@
         el("div", { class: "hero-actions" }, [
           el("a", {
             class: "btn btn-ghost",
-            href: href("notes/index.html"),
+            href: notesHref(),
             text: data.notesCta,
           }),
         ]),

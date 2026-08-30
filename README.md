@@ -18,9 +18,11 @@ Open http://127.0.0.1:4173/
 
 ## Live
 
-**https://kovalenkomikhail.github.io/myCV/**
+**https://kovalenkomikhail.github.io/**
 
-GitHub Pages, branch `main`, folder `/ (root)`. Links are relative, so the `/myCV/` path works.
+User site on GitHub Pages (`KovalenkoMikhail.github.io`). No `/myCV/` in the path. Links do not use `index.html`.
+
+To use **https://kovalenkomykhailo.github.io/**, rename the GitHub username from `KovalenkoMikhail` to `KovalenkoMykhailo` in [account settings](https://github.com/settings/admin), then rename the Pages repo to `KovalenkoMykhailo.github.io`.
 
 ## Add contacts
 
@@ -36,7 +38,7 @@ Edit [`content/site.json`](content/site.json):
 }
 ```
 
-Empty contact fields are hidden. Open Graph tags in HTML use `siteUrl` from [`content/site.json`](content/site.json) (`https://kovalenkomikhail.github.io/myCV`). Change it if the Pages URL is different.
+Empty contact fields are hidden. Open Graph tags in HTML use `siteUrl` from [`content/site.json`](content/site.json).
 
 ## Edit text
 

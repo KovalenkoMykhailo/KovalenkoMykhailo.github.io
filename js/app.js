@@ -1669,6 +1669,17 @@
       }),
       hunter,
     ]);
+    const resetBtn = el("button", {
+      class: "hunter-reset",
+      type: "button",
+      "data-testid": "sandbox-reset",
+      text: data.reset,
+      onClick: () => {
+        if (window.resetAccessDesk) window.resetAccessDesk();
+        localStorage.removeItem(FOUND_KEY);
+        location.reload();
+      },
+    });
     const meter = el("div", {
       class: "hunter-meter",
       "data-testid": "hunter-meter",
@@ -1676,6 +1687,7 @@
       scoreEl,
       el("div", { class: "hunter-track", "aria-hidden": "true" }, [fill]),
       hint,
+      resetBtn,
     ]);
 
     const paintHunter = () => {
@@ -1728,10 +1740,21 @@
     );
 
     const mount = el("div", { id: "access-app", class: "access-app", "data-testid": "access-app" });
-    const viewBtn = el("button", {
-      class: "btn btn-primary",
+    const docsLabel = data.viewDocs || (chrome.lang === "uk" ? "Доку" : "Docs");
+    const appLabel = data.viewApp || data.viewConsole || (chrome.lang === "uk" ? "Апка" : "App");
+    const docsBtn = el("button", {
+      class: "btn btn-ghost",
       type: "button",
       "data-testid": "sandbox-docs-btn",
+      "aria-pressed": "false",
+      text: docsLabel,
+    });
+    const appBtn = el("button", {
+      class: "btn btn-primary",
+      type: "button",
+      "data-testid": "sandbox-app-btn",
+      "aria-pressed": "true",
+      text: appLabel,
     });
     const consolePanel = el("div", {
       class: "sandbox-layout",
@@ -1753,9 +1776,12 @@
     };
 
     const applyView = (docsOn) => {
-      viewBtn.textContent = docsOn
-        ? (data.viewConsole || (chrome.lang === "uk" ? "Консоль" : "Console"))
-        : (data.viewDocs || (chrome.lang === "uk" ? "Доку" : "Docs"));
+      docsBtn.classList.toggle("btn-primary", docsOn);
+      docsBtn.classList.toggle("btn-ghost", !docsOn);
+      appBtn.classList.toggle("btn-primary", !docsOn);
+      appBtn.classList.toggle("btn-ghost", docsOn);
+      docsBtn.setAttribute("aria-pressed", docsOn ? "true" : "false");
+      appBtn.setAttribute("aria-pressed", docsOn ? "false" : "true");
       consolePanel.hidden = docsOn;
       docsPanel.hidden = !docsOn;
       if (docsOn) {
@@ -1765,9 +1791,8 @@
       }
     };
 
-    viewBtn.addEventListener("click", () => {
-      setView(isSandboxDocsHash(hashId(), guide) ? "console" : "docs");
-    });
+    docsBtn.addEventListener("click", () => setView("docs"));
+    appBtn.addEventListener("click", () => setView("console"));
     window.addEventListener("hashchange", () => applyView(isSandboxDocsHash(hashId(), guide)), { signal: ctl.signal });
 
     main.replaceChildren(
@@ -1777,19 +1802,9 @@
         el("p", { class: "pitch", text: data.intro }),
         el("p", { class: "lede", text: data.hint }),
         meter,
-        el("div", { class: "hero-actions" }, [
-          viewBtn,
-          el("button", {
-            class: "btn btn-ghost",
-            type: "button",
-            "data-testid": "sandbox-reset",
-            text: data.reset,
-            onClick: () => {
-              if (window.resetAccessDesk) window.resetAccessDesk();
-              localStorage.removeItem(FOUND_KEY);
-              location.reload();
-            },
-          }),
+        el("div", { class: "hero-actions sandbox-switch", role: "group", "aria-label": docsLabel + " / " + appLabel }, [
+          docsBtn,
+          appBtn,
         ]),
       ]),
       consolePanel,

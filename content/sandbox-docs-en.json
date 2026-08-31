@@ -25,7 +25,7 @@
   "title": "Northgate Console — TEST docs",
   "badge": "Fake B2B admin · not a live bank",
   "intro": "This is the product spec for the QA challenge console. If the UI or the API disagrees with this page, treat it as a defect. Same area I tested at work: Access & Identity, account structures, roles. Not payment-provider rails. Product UI is English on purpose.",
-  "openConsole": "Open the console",
+  "openConsole": "Open the app",
   "toc": "On this page",
   "footer": "Mykhailo Kovalenko · Senior General QA Engineer",
   "sections": [
@@ -71,7 +71,7 @@
           ["mk-ng-open", "Cached Open-accounts KPI"],
           ["mk-access-found", "Hunter score on the challenge page"]
         ]},
-        { "type": "p", "text": "Reset app + score on the challenge page clears these keys and reloads seed data." }
+        { "type": "p", "text": "Start over on the challenge page (under Bugs found) clears these keys and reloads seed data." }
       ]
     },
     {

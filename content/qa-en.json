@@ -78,15 +78,15 @@
         },
         {
           "q": "What do you automate?",
-          "a": "I do not automate everything. I automate stable and important flows. The test must work in CI."
+          "a": "I automate stable and important flows. The test must work in CI."
         },
         {
           "q": "How do you work with flaky tests?",
-          "a": "I check locators, timing, test data and the environment. I do not hide the problem with extra waits. I look for the real cause."
+          "a": "I check locators, timing, test data and the environment. I look for the real cause."
         },
         {
           "q": "Do you use AI in QA?",
-          "a": "I use Cursor every day. I read all generated code. I never trust it blindly."
+          "a": "I use Cursor every day. I read all generated code."
         }
       ]
     },
@@ -100,7 +100,7 @@
         },
         {
           "q": "What about SQL?",
-          "a": "I use SQL as a QA. I check data, prepare test data and investigate bugs. I am not a DBA."
+          "a": "I use SQL as a QA. I check data, prepare test data and investigate bugs."
         },
         {
           "q": "What CI tools did you use?",
@@ -108,11 +108,11 @@
         },
         {
           "q": "Do you have FinTech experience?",
-          "a": "Yes. I worked on a B2B payment platform. I tested Access and Identity: clients, accounts, roles and permissions. I also tested APIs and integrations. I am not a payment-provider-flow expert."
+          "a": "Yes. I worked on a B2B payment platform. I tested Access and Identity: clients, accounts, roles and permissions. I also tested APIs and integrations."
         },
         {
           "q": "Do you do mobile automation?",
-          "a": "I did some functional testing on mobile, for example registration. I am not a mobile automation specialist. I do not use Appium as my main skill."
+          "a": "I did functional testing on mobile, for example registration."
         }
       ]
     },
@@ -134,7 +134,7 @@
         },
         {
           "q": "Do you know Docker and Kubernetes?",
-          "a": "I have study notes on Docker and Kubernetes. I do not have strong commercial experience with them. My CI at work was Jenkins. I say this honestly."
+          "a": "I have study notes on Docker and Kubernetes. My CI at work was Jenkins."
         },
         {
           "q": "What is mock and stub?",

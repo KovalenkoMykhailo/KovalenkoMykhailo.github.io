@@ -40,8 +40,8 @@
     "paragraphs": [
       "I work as a Senior General QA Engineer: functional testing, UI, API, automation, and test documentation.",
       "My current stack is TypeScript and Playwright for UI, API, and E2E tests. I started automation with Java, Selenium, and Maven.",
-      "I have FinTech experience on a B2B payment platform, in the Access & Identity team: access, accounts, roles, and corporate client operations. I do not position myself as a payment-provider-flow specialist.",
-      "I care about a framework the team can trust in CI, fewer flaky tests, and less manual regression — not about automating everything."
+      "I have FinTech experience on a B2B payment platform, in the Access & Identity team: access, accounts, roles, and corporate client operations.",
+      "I care about a framework the team can trust in CI, fewer flaky tests, and shorter manual regression."
     ]
   },
   "now": {
@@ -161,7 +161,7 @@
         "name": "IT lecture notes",
         "kind": "Conspect · 38 sections",
         "url": "https://github.com/KovalenkoMykhailo/note-Advanced-web-automation-course",
-        "text": "My study notes: networking/HTTP, testing and Playwright, Git/Jenkins, SQL and APIs, Java/JS. Glossary with 250+ terms. Also on the Notes page. Docker, Kubernetes, RabbitMQ here are study topics, not my main commercial stack."
+        "text": "My study notes: networking/HTTP, testing and Playwright, Git/Jenkins, SQL and APIs, Java/JS. Glossary with 250+ terms. Also on the Notes page."
       },
       {
         "name": "Calculator CLI (Java)",

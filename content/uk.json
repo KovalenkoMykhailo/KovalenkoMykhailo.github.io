@@ -40,8 +40,8 @@
     "paragraphs": [
       "Працюю як Senior General QA Engineer: функціональне тестування, UI, API, автоматизація і тест-документація.",
       "Поточний стек — TypeScript і Playwright для UI, API та E2E. Автоматизацію починав з Java, Selenium і Maven.",
-      "Є досвід у FinTech на B2B payment platform, команда Access & Identity: доступ, акаунти, ролі, операції корпоративних клієнтів. Не позиціоную себе як експерта з payment-provider flows.",
-      "Важливий фреймворк, якому команда вірить у CI, менше flaky-тестів і коротша ручна регресія — не автоматизація всього підряд."
+      "Є досвід у FinTech на B2B payment platform, команда Access & Identity: доступ, акаунти, ролі, операції корпоративних клієнтів.",
+      "Важливий фреймворк, якому команда вірить у CI, менше flaky-тестів і коротша ручна регресія."
     ]
   },
   "now": {
@@ -161,7 +161,7 @@
         "name": "IT lecture notes",
         "kind": "Конспект · 38 розділів",
         "url": "https://github.com/KovalenkoMykhailo/note-Advanced-web-automation-course",
-        "text": "Навчальні нотатки: мережа/HTTP, тестування і Playwright, Git/Jenkins, SQL і API, Java/JS. Глосарій 250+ термінів. Є на сторінці Конспект. Docker, Kubernetes, RabbitMQ тут — теми навчання, не основний комерційний стек."
+        "text": "Навчальні нотатки: мережа/HTTP, тестування і Playwright, Git/Jenkins, SQL і API, Java/JS. Глосарій 250+ термінів. Є на сторінці Конспект."
       },
       {
         "name": "Calculator CLI (Java)",

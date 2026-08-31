@@ -18,7 +18,7 @@
   "qaCta": "Go to interview Q&A",
   "featured": {
     "title": "IT lecture notes",
-    "lead": "My public conspect for interviews and study. Networking, QA/Playwright, Git/Jenkins, SQL/API, Java/JS. Docker, Kubernetes and RabbitMQ are in the notes as study topics — not my main commercial stack.",
+    "lead": "My public conspect for interviews and study. Networking, QA/Playwright, Git/Jenkins, SQL/API, Java/JS. Also notes on Docker, Kubernetes and RabbitMQ.",
     "url": "https://github.com/KovalenkoMykhailo/note-Advanced-web-automation-course",
     "cta": "Open the full conspect on GitHub",
     "topics": [
@@ -63,7 +63,7 @@
     {
       "title": "How I prepare",
       "paragraphs": [
-        "I do not try to learn every tool from a job description. I refresh the stack I actually used: Playwright, API, SQL, CI, and how I explain the QA process.",
+        "I refresh the stack I actually used: Playwright, API, SQL, CI, and how I explain the QA process.",
         "I keep two versions of answers. Ukrainian is how I think. English is spoken: short sentences, one idea each, with real technical words (fixtures, storageState, 401).",
         "I practice the story of the work, not only tool names: first QA on a project, what I automated and why, how I look for a root cause."
       ]
@@ -74,7 +74,7 @@
         "Interview prep around Playwright: fixtures, storageState, APIRequest, locators that stay stable, why a test is flaky.",
         "How to explain a framework and Jenkins jobs (merge request, branch, nightly) in a clear way.",
         "Spoken English for work answers. My level is Intermediate / B1. I say that honestly.",
-        "SQL and API checks for defect investigation — QA-level, not DBA or performance specialist work."
+        "SQL and API checks for defect investigation.",
       ]
     },
     {
@@ -87,17 +87,16 @@
       ]
     },
     {
-      "title": "What I automate — and what I do not",
+      "title": "What I automate",
       "paragraphs": [
         "I automate flows that run often and must stay green in CI: regression, critical UI + API paths, repeated setup.",
-        "I do not automate everything. A test that is weak, tied to a random UI, or expensive to keep is worse than a short manual check.",
-        "A useful automated test is one the team can trust after a merge, not a screenshot of a click path that breaks every sprint."
+        "A useful automated test is one the team can trust after a merge."
       ]
     },
     {
       "title": "How I use Cursor",
       "paragraphs": [
-        "I use Cursor every day. I read generated code. I do not merge it blindly.",
+        "I use Cursor every day. I read generated code before I merge.",
         "AI helps with boilerplate and first drafts. I still own locators, waits, test data, and whether the assertion matches the real risk."
       ]
     }

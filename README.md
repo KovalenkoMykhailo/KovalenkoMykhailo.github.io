@@ -44,6 +44,8 @@ Edit [`content/site.json`](content/site.json):
 
 Empty contact fields are hidden. If `pdf` is empty, the header shows Print / Save PDF instead (the page has a print stylesheet).
 
+Optional `e2eDispatchToken` in `site.json` lets the sandbox **Tests** tab start GitHub Actions from the page. Use a **fine-grained PAT**: only `northgate-console-e2e`, **Actions: Read and write**. Do not paste a `gh` login token. The value is public on Pages. Without it, Run tests opens a prefilled `[e2e]` issue (the workflow starts on Submit).
+
 ## Edit text
 
 | Page | Files |

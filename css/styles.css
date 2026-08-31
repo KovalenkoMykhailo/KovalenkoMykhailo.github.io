@@ -377,6 +377,44 @@ html[data-page="sandbox"] .hero-actions {
   align-items: center;
 }
 
+.sandbox-tests {
+  margin-top: 1.5rem;
+}
+
+.sandbox-tests-links,
+.sandbox-tests-cmd-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.65rem;
+  margin: 0.85rem 0;
+}
+
+.sandbox-tests-badge {
+  height: 1.25rem;
+  vertical-align: middle;
+}
+
+.sandbox-tests-cmd {
+  font-family: var(--mono);
+  font-size: 0.9rem;
+}
+
+.sandbox-tests-frame {
+  display: block;
+  width: 100%;
+  min-height: 70vh;
+  margin-top: 0.85rem;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--bg);
+}
+
+.sandbox-tests-run-state {
+  min-height: 1.4em;
+  margin: 0.35rem 0 0;
+}
+
 .hunter-reset {
   display: inline-block;
   margin-top: 0.75rem;

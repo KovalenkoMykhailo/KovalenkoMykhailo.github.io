@@ -1641,7 +1641,347 @@
   function isSandboxDocsHash(id, guide) {
     if (!id) return false;
     if (id === "docs") return true;
+    if (id === "tests") return false;
     return ((guide && guide.sections) || []).some((section) => section.id === id);
+  }
+
+  function sandboxPanelFromHash(id, guide) {
+    if (id === "tests") return "tests";
+    if (isSandboxDocsHash(id, guide)) return "docs";
+    return "console";
+  }
+
+  const NG_E2E_OWNER = "KovalenkoMykhailo";
+  const NG_E2E_NAME = "northgate-console-e2e";
+  const NG_E2E_REPO = "https://github.com/" + NG_E2E_OWNER + "/" + NG_E2E_NAME;
+  const NG_E2E_REPORTS = "https://kovalenkomykhailo.github.io/" + NG_E2E_NAME;
+  const NG_E2E_ACTIONS = NG_E2E_REPO + "/actions/workflows/e2e.yml";
+  const NG_E2E_BADGE = NG_E2E_ACTIONS + "/badge.svg?branch=main";
+  const NG_E2E_COOL_KEY = "mk-ng-e2e-at";
+  const NG_E2E_COOL_MS = 8 * 60 * 1000;
+
+  function suiteCommand(suite) {
+    if (suite === "smoke") return "npm run test:smoke";
+    if (suite === "regression") return "npm run test:regression";
+    if (suite === "planted") return "npm run test:planted";
+    return "npm test";
+  }
+
+  function e2eSafeSuite(suite) {
+    return /^(smoke|regression|all|planted|api)$/.test(suite) ? suite : "smoke";
+  }
+
+  function e2eToken() {
+    const raw = chrome.site && chrome.site.e2eDispatchToken;
+    return raw ? String(raw).trim() : "";
+  }
+
+  function e2eIssueUrl(suite) {
+    return (
+      NG_E2E_REPO +
+      "/issues/new?title=" +
+      encodeURIComponent("[e2e] " + e2eSafeSuite(suite)) +
+      "&body=" +
+      encodeURIComponent("Start the selected suite from the Console Tests tab.")
+    );
+  }
+
+  function e2eCoolLeft() {
+    const at = Number(localStorage.getItem(NG_E2E_COOL_KEY) || 0);
+    return Math.max(0, at + NG_E2E_COOL_MS - Date.now());
+  }
+
+  function e2eMarkCool() {
+    localStorage.setItem(NG_E2E_COOL_KEY, String(Date.now()));
+  }
+
+  async function e2eDispatch(suite) {
+    const token = e2eToken();
+    if (!token) return { mode: "issue" };
+    const res = await fetch(
+      "https://api.github.com/repos/" +
+        NG_E2E_OWNER +
+        "/" +
+        NG_E2E_NAME +
+        "/actions/workflows/e2e.yml/dispatches",
+      {
+        method: "POST",
+        headers: {
+          Accept: "application/vnd.github+json",
+          Authorization: "Bearer " + token,
+          "X-GitHub-Api-Version": "2022-11-28",
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ ref: "main", inputs: { suite: e2eSafeSuite(suite) } }),
+      }
+    );
+    if (res.status === 204 || res.ok) return { mode: "api" };
+    return { mode: "issue", status: res.status };
+  }
+
+  async function e2eLatestRun() {
+    const res = await fetch(
+      "https://api.github.com/repos/" +
+        NG_E2E_OWNER +
+        "/" +
+        NG_E2E_NAME +
+        "/actions/workflows/e2e.yml/runs?per_page=3",
+      {
+        headers: { Accept: "application/vnd.github+json" },
+        cache: "no-store",
+      }
+    );
+    if (!res.ok) return null;
+    const data = await res.json();
+    return (data.workflow_runs && data.workflow_runs[0]) || null;
+  }
+
+  function buildTestsPanel(data) {
+    const uk = chrome.lang === "uk";
+    const htmlUrl = NG_E2E_REPORTS + "/html/index.html";
+    const allureUrl = NG_E2E_REPORTS + "/allure/index.html";
+    const frame = el("iframe", {
+      class: "sandbox-tests-frame",
+      "data-testid": "tests-frame",
+      title: data.testsFrameHtml || "Playwright HTML report",
+      src: htmlUrl,
+    });
+    const statusEl = el("p", {
+      class: "lede sandbox-tests-status",
+      "data-testid": "tests-status",
+      text: data.testsLastRun || (uk ? "Останній CI…" : "Last CI…"),
+    });
+    const cmdEl = el("code", {
+      class: "sandbox-tests-cmd",
+      "data-testid": "tests-cmd",
+      text: suiteCommand("smoke"),
+    });
+    let suite = "smoke";
+
+    const setFrame = (kind) => {
+      frame.src = kind === "allure" ? allureUrl : htmlUrl;
+      frame.title =
+        kind === "allure"
+          ? data.testsFrameAllure || "Allure report"
+          : data.testsFrameHtml || "Playwright HTML report";
+      htmlBtn.classList.toggle("btn-primary", kind === "html");
+      htmlBtn.classList.toggle("btn-ghost", kind !== "html");
+      allureBtn.classList.toggle("btn-primary", kind === "allure");
+      allureBtn.classList.toggle("btn-ghost", kind !== "allure");
+    };
+
+    const htmlBtn = el("button", {
+      class: "btn btn-primary",
+      type: "button",
+      "data-testid": "tests-frame-html",
+      text: data.testsFrameHtml || "HTML",
+    });
+    const allureBtn = el("button", {
+      class: "btn btn-ghost",
+      type: "button",
+      "data-testid": "tests-frame-allure",
+      text: data.testsFrameAllure || "Allure",
+    });
+    htmlBtn.addEventListener("click", () => setFrame("html"));
+    allureBtn.addEventListener("click", () => setFrame("allure"));
+
+    const suiteBtns = ["smoke", "regression", "all", "planted"].map((id) => {
+      const label =
+        (data.testsSuites && data.testsSuites[id]) ||
+        id.charAt(0).toUpperCase() + id.slice(1);
+      const btn = el("button", {
+        class: "btn " + (id === "smoke" ? "btn-primary" : "btn-ghost"),
+        type: "button",
+        "data-testid": "tests-suite-" + id,
+        "data-suite": id,
+        text: label,
+      });
+      btn.addEventListener("click", () => {
+        suite = id;
+        cmdEl.textContent = suiteCommand(id);
+        suiteBtns.forEach((other) => {
+          const on = other.getAttribute("data-suite") === id;
+          other.classList.toggle("btn-primary", on);
+          other.classList.toggle("btn-ghost", !on);
+        });
+      });
+      return btn;
+    });
+
+    const paintLastCi = () => {
+      fetch(NG_E2E_REPORTS + "/status.json", { cache: "no-store" })
+        .then((res) => (res.ok ? res.json() : null))
+        .then((s) => {
+          if (!s) return;
+          const when = s.at ? String(s.at).slice(0, 16).replace("T", " ") + "Z" : "";
+          statusEl.textContent =
+            (data.testsLastRun || (uk ? "Останній CI" : "Last CI")) +
+            ": " +
+            (s.passed ?? "?") +
+            " passed · " +
+            (s.failed ?? "?") +
+            " failed" +
+            (when ? " · " + when : "");
+        })
+        .catch(() => {});
+    };
+    paintLastCi();
+
+    const runStateEl = el("p", {
+      class: "lede sandbox-tests-run-state",
+      "data-testid": "tests-run-state",
+      "aria-live": "polite",
+    });
+    const runBtn = el("button", {
+      class: "btn btn-primary",
+      type: "button",
+      "data-testid": "tests-run",
+      text: data.testsRun || (uk ? "Запустити тести" : "Run tests"),
+    });
+    const hintEl = el("p", {
+      class: "lede",
+      "data-testid": "tests-run-hint",
+      text: e2eToken()
+        ? data.testsRunHint
+        : data.testsRunHintIssue || data.testsRunHint,
+    });
+
+    const setRunState = (text) => {
+      runStateEl.textContent = text || "";
+    };
+
+    const reloadFrame = () => {
+      const kind = htmlBtn.classList.contains("btn-primary") ? "html" : "allure";
+      const next = kind === "allure" ? allureUrl : htmlUrl;
+      frame.src = "about:blank";
+      window.setTimeout(() => {
+        frame.src = next;
+      }, 40);
+      paintLastCi();
+    };
+
+    let pollTimer = 0;
+    const stopPoll = () => {
+      if (pollTimer) window.clearInterval(pollTimer);
+      pollTimer = 0;
+    };
+
+    const watchRun = (startedAt) => {
+      stopPoll();
+      let ticks = 0;
+      const tick = () => {
+        ticks += 1;
+        e2eLatestRun()
+          .then((run) => {
+            if (!run) return;
+            const created = Date.parse(run.created_at || "") || 0;
+            if (startedAt && created + 5000 < startedAt) return;
+            if (run.status === "queued" || run.status === "waiting") {
+              setRunState(data.testsQueued || (uk ? "У черзі…" : "Queued…"));
+              return;
+            }
+            if (run.status === "in_progress") {
+              setRunState(data.testsRunning || (uk ? "Йде прогін…" : "Running…"));
+              return;
+            }
+            if (run.status === "completed") {
+              stopPoll();
+              setRunState(data.testsDone || (uk ? "Готово. Звіт оновлено." : "Done. Report refreshed."));
+              reloadFrame();
+              runBtn.disabled = e2eCoolLeft() > 0;
+            }
+          })
+          .catch(() => {});
+        if (ticks > 60) stopPoll();
+      };
+      tick();
+      pollTimer = window.setInterval(tick, 8000);
+    };
+
+    e2eLatestRun()
+      .then((run) => {
+        if (!run) return;
+        if (run.status === "queued" || run.status === "waiting" || run.status === "in_progress") {
+          watchRun(0);
+        }
+      })
+      .catch(() => {});
+
+    if (e2eCoolLeft() > 0) runBtn.disabled = true;
+
+    runBtn.addEventListener("click", () => {
+      if (e2eCoolLeft() > 0) {
+        setRunState(
+          data.testsCooldown ||
+            (uk ? "Зачекай кілька хвилин до наступного прогону." : "Wait a few minutes before the next run.")
+        );
+        return;
+      }
+      runBtn.disabled = true;
+      setRunState(data.testsStarting || (uk ? "Стартую…" : "Starting…"));
+      const startedAt = Date.now();
+      e2eDispatch(suite)
+        .then((result) => {
+          e2eMarkCool();
+          if (result.mode === "issue") {
+            window.open(e2eIssueUrl(suite), "_blank", "noopener");
+            setRunState(
+              data.testsIssueHint ||
+                (uk
+                  ? "Натисни Create issue — так стартує CI. Потім повернись сюди."
+                  : "Press Create issue to start CI. Then come back here.")
+            );
+          } else {
+            setRunState(data.testsQueued || (uk ? "У черзі…" : "Queued…"));
+          }
+          watchRun(startedAt);
+        })
+        .catch(() => {
+          runBtn.disabled = false;
+          window.open(e2eIssueUrl(suite), "_blank", "noopener");
+          setRunState(
+            data.testsDispatchFail ||
+              (uk
+                ? "Звідси не вийшло. Відкрий Create issue і натисни Submit."
+                : "Could not start from here. Submit the prefilled issue.")
+          );
+        });
+    });
+
+    return el("section", {
+      class: "sandbox-tests note",
+      id: "tests",
+      "data-testid": "sandbox-tests",
+    }, [
+      el("h2", { text: data.testsTitle || (uk ? "Автотести" : "Automation") }),
+      el("p", { class: "lede", text: data.testsIntro }),
+      el("p", {}, [
+        el("img", {
+          class: "sandbox-tests-badge",
+          alt: "e2e",
+          src: NG_E2E_BADGE,
+        }),
+      ]),
+      statusEl,
+      el("div", { class: "sandbox-tests-links" }, [
+        el("a", { class: "btn btn-ghost", href: NG_E2E_REPO, target: "_blank", rel: "noopener", "data-testid": "tests-repo", text: data.testsRepo || "Repo" }),
+        el("a", { class: "btn btn-ghost", href: NG_E2E_REPORTS + "/", target: "_blank", rel: "noopener", "data-testid": "tests-reports", text: data.testsReports || "Reports" }),
+        el("a", { class: "btn btn-ghost", href: htmlUrl, target: "_blank", rel: "noopener", text: data.testsHtml || "Playwright HTML" }),
+        el("a", { class: "btn btn-ghost", href: allureUrl, target: "_blank", rel: "noopener", text: data.testsAllure || "Allure" }),
+        el("a", { class: "btn btn-ghost", href: NG_E2E_ACTIONS, target: "_blank", rel: "noopener", "data-testid": "tests-actions", text: data.testsCi || "GitHub Actions" }),
+      ]),
+      el("p", { class: "lede", text: data.testsSuite || (uk ? "Сьют" : "Suite") }),
+      el("div", { class: "hero-actions", role: "group" }, suiteBtns),
+      el("p", { class: "sandbox-tests-cmd-row" }, [
+        el("span", { class: "lede", text: (data.testsCmd || (uk ? "Локально" : "Local")) + ": " }),
+        cmdEl,
+      ]),
+      hintEl,
+      el("p", { class: "sandbox-tests-cmd-row" }, [runBtn]),
+      runStateEl,
+      el("div", { class: "hero-actions sandbox-switch", role: "group" }, [htmlBtn, allureBtn]),
+      frame,
+    ]);
   }
 
   function renderSandbox(data, guide) {
@@ -1742,6 +2082,7 @@
     const mount = el("div", { id: "access-app", class: "access-app", "data-testid": "access-app" });
     const docsLabel = data.viewDocs || (chrome.lang === "uk" ? "Доку" : "Docs");
     const appLabel = data.viewApp || data.viewConsole || (chrome.lang === "uk" ? "Апка" : "App");
+    const testsLabel = data.viewTests || (chrome.lang === "uk" ? "Тести" : "Tests");
     const docsBtn = el("button", {
       class: "btn btn-ghost",
       type: "button",
@@ -1756,6 +2097,13 @@
       "aria-pressed": "true",
       text: appLabel,
     });
+    const testsBtn = el("button", {
+      class: "btn btn-ghost",
+      type: "button",
+      "data-testid": "sandbox-tests-btn",
+      "aria-pressed": "false",
+      text: testsLabel,
+    });
     const consolePanel = el("div", {
       class: "sandbox-layout",
       "data-testid": "sandbox-console",
@@ -1763,37 +2111,58 @@
     const docsPanel = guide
       ? buildGuideLayout(guide)
       : el("p", { class: "lede", text: "Docs failed to load." });
+    const testsPanel = buildTestsPanel(data);
     docsPanel.hidden = true;
+    testsPanel.hidden = true;
 
     const setView = (next) => {
       if (next === "docs") {
         if (!isSandboxDocsHash(hashId(), guide)) location.hash = "docs";
-        else applyView(true);
+        else applyView("docs");
+        return;
+      }
+      if (next === "tests") {
+        if (hashId() !== "tests") location.hash = "tests";
+        else applyView("tests");
         return;
       }
       if (location.hash) history.pushState(null, "", location.pathname + location.search);
-      applyView(false);
+      applyView("console");
     };
 
-    const applyView = (docsOn) => {
-      docsBtn.classList.toggle("btn-primary", docsOn);
-      docsBtn.classList.toggle("btn-ghost", !docsOn);
-      appBtn.classList.toggle("btn-primary", !docsOn);
-      appBtn.classList.toggle("btn-ghost", docsOn);
-      docsBtn.setAttribute("aria-pressed", docsOn ? "true" : "false");
-      appBtn.setAttribute("aria-pressed", docsOn ? "false" : "true");
-      consolePanel.hidden = docsOn;
-      docsPanel.hidden = !docsOn;
-      if (docsOn) {
+    const paintSwitch = (view) => {
+      const map = { docs: docsBtn, console: appBtn, tests: testsBtn };
+      Object.keys(map).forEach((key) => {
+        const on = key === view;
+        map[key].classList.toggle("btn-primary", on);
+        map[key].classList.toggle("btn-ghost", !on);
+        map[key].setAttribute("aria-pressed", on ? "true" : "false");
+      });
+      consolePanel.hidden = view !== "console";
+      docsPanel.hidden = view !== "docs";
+      testsPanel.hidden = view !== "tests";
+    };
+
+    const applyView = (view) => {
+      paintSwitch(view);
+      if (view === "docs") {
         const id = hashId();
         const target = id && id !== "docs" ? document.getElementById(id) : docsPanel;
         if (target && target.scrollIntoView) target.scrollIntoView({ block: "start" });
+      }
+      if (view === "tests" && testsPanel.scrollIntoView) {
+        testsPanel.scrollIntoView({ block: "start" });
       }
     };
 
     docsBtn.addEventListener("click", () => setView("docs"));
     appBtn.addEventListener("click", () => setView("console"));
-    window.addEventListener("hashchange", () => applyView(isSandboxDocsHash(hashId(), guide)), { signal: ctl.signal });
+    testsBtn.addEventListener("click", () => setView("tests"));
+    window.addEventListener(
+      "hashchange",
+      () => applyView(sandboxPanelFromHash(hashId(), guide)),
+      { signal: ctl.signal }
+    );
 
     main.replaceChildren(
       el("header", { class: "hero" }, [
@@ -1802,18 +2171,24 @@
         el("p", { class: "pitch", text: data.intro }),
         el("p", { class: "lede", text: data.hint }),
         meter,
-        el("div", { class: "hero-actions sandbox-switch", role: "group", "aria-label": docsLabel + " / " + appLabel }, [
+        el("div", {
+          class: "hero-actions sandbox-switch",
+          role: "group",
+          "aria-label": docsLabel + " / " + appLabel + " / " + testsLabel,
+        }, [
           docsBtn,
           appBtn,
+          testsBtn,
         ]),
       ]),
       consolePanel,
-      docsPanel
+      docsPanel,
+      testsPanel
     );
     paintHunter();
     window.__ngDocs = "#docs";
     if (typeof window.bootAccessDesk === "function") window.bootAccessDesk(mount);
-    applyView(isSandboxDocsHash(hashId(), guide));
+    applyView(sandboxPanelFromHash(hashId(), guide));
   }
 
   function renderLearn(data) {

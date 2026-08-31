@@ -1,0 +1,125 @@
+{
+  "metaTitle": "Playwright quizzes — Mykhailo Kovalenko",
+  "metaDescription": "Short Playwright quizzes. Same facts I use in interviews: fixtures, storageState, locators, CI.",
+  "nav": {
+    "home": "CV",
+    "notes": "Notes",
+    "qa": "Q&A",
+    "experience": "Experience",
+    "skills": "Skills",
+    "contacts": "Contact",
+    "onPage": "On this page",
+    "pages": "Pages",
+    "download": "Download CV",
+    "print": "Print / Save PDF",
+    "challenge": "QA challenge",
+    "learn": "Learn",
+    "fit": "JD fit",
+    "menu": "Menu",
+    "command": "Search",
+    "commandHint": "Jump to a page or section",
+    "commandEmpty": "Nothing found.",
+    "commandK": "⌘K"
+  },
+  "title": "Playwright quizzes",
+  "badge": "Practice, not a certificate",
+  "intro": "Short checks on the stack I use at work. After you pick an answer, I show why. Notes and spoken Q&A are still on their own pages.",
+  "notesCta": "Open notes",
+  "qaCta": "Open Q&A",
+  "next": "Next",
+  "again": "Try again",
+  "score": "Score",
+  "correct": "Yes.",
+  "wrong": "No.",
+  "items": [
+    {
+      "q": "Why use storageState?",
+      "options": [
+        "To skip the login UI in every test and reuse cookies / storage.",
+        "To store screenshots in CI.",
+        "To mock the network.",
+        "To run tests in Safari only."
+      ],
+      "answer": 0,
+      "why": "I log in once, save the session, then tests start already authenticated."
+    },
+    {
+      "q": "What belongs in a Playwright fixture?",
+      "options": [
+        "Locators for one page.",
+        "Setup the test needs: page, user, API context.",
+        "The Jenkinsfile.",
+        "Allure steps only."
+      ],
+      "answer": 1,
+      "why": "Pages hold locators. Fixtures hold setup. Tests stay short."
+    },
+    {
+      "q": "Which locator is usually more stable?",
+      "options": [
+        "div:nth-child(4) > span",
+        "xpath=//*[@class='btn btn-green']",
+        "getByRole('button', { name: 'Invite' })",
+        "page.locator('.css-a8f2')"
+      ],
+      "answer": 2,
+      "why": "Role + name is close to the user. Generated CSS classes break often."
+    },
+    {
+      "q": "What is a good assertion?",
+      "options": [
+        "The click happened.",
+        "The spinner was visible.",
+        "The business result: user created, status 201, cart TOTAL.",
+        "The test took less than 30 seconds."
+      ],
+      "answer": 2,
+      "why": "I check the outcome, not only the click path."
+    },
+    {
+      "q": "A test is flaky. What do you do first?",
+      "options": [
+        "Add sleep(5000).",
+        "Delete the test.",
+        "Look at locators, timing, data, environment, and the trace.",
+        "Run it 50 times and ignore it."
+      ],
+      "answer": 2,
+      "why": "Sleep hides the cause. Trace and data usually show it."
+    },
+    {
+      "q": "When do you use one worker?",
+      "options": [
+        "Always. Parallel is dangerous.",
+        "When tests share an account or a cart.",
+        "Never. Playwright forbids it.",
+        "Only on Firefox."
+      ],
+      "answer": 1,
+      "why": "Shared state plus parallel = flake. Independent tests can run in parallel."
+    },
+    {
+      "q": "API in Playwright — which API?",
+      "options": [
+        "APIRequest",
+        "window.fetch only in the page",
+        "REST Assured inside TypeScript",
+        "Selenium Grid"
+      ],
+      "answer": 0,
+      "why": "APIRequest is the Playwright way. I used REST Assured in Java before."
+    },
+    {
+      "q": "Smoke on a pull request should be…",
+      "options": [
+        "The full nightly suite.",
+        "Small and fast, critical paths only.",
+        "Only visual tests.",
+        "Manual."
+      ],
+      "answer": 1,
+      "why": "PR jobs must be short. Nightly can be wider."
+    }
+  ],
+  "footer": "Mykhailo Kovalenko · Senior General QA Engineer"
+}

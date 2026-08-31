@@ -1,0 +1,328 @@
+{
+  "metaTitle": "Документація Northgate Console — Михайло Коваленко",
+  "metaDescription": "TEST-специфікація Northgate Console: auth, рахунки, перекази, Access, audit, REST API, seed-дані, локатори.",
+  "nav": {
+    "home": "CV",
+    "notes": "Конспект",
+    "qa": "Q&A",
+    "experience": "Досвід",
+    "skills": "Скіли",
+    "contacts": "Контакти",
+    "onPage": "На цій сторінці",
+    "pages": "Сторінки",
+    "download": "Завантажити CV",
+    "print": "Друк / PDF",
+    "challenge": "QA-челендж",
+    "learn": "Learn",
+    "fit": "JD fit",
+    "consoleDocs": "Доку консолі",
+    "menu": "Меню",
+    "command": "Пошук",
+    "commandHint": "Перейти на сторінку або секцію",
+    "commandEmpty": "Нічого не знайдено.",
+    "commandK": "⌘K"
+  },
+  "title": "Northgate Console — TEST docs",
+  "badge": "Фейкова B2B-адмінка · не живий банк",
+  "intro": "Це специфікація продукту для QA-челенджу. Якщо UI або API розходяться з цією сторінкою — це дефект. Та сама зона, що я тестував на роботі: Access & Identity, структури рахунків, ролі. Не рейки payment-провайдера. UI продукту англійською навмисно.",
+  "openConsole": "Відкрити консоль",
+  "toc": "На цій сторінці",
+  "footer": "Михайло Коваленко · Senior General QA Engineer",
+  "sections": [
+    {
+      "id": "overview",
+      "title": "1. Огляд",
+      "blocks": [
+        { "type": "p", "text": "Northgate Console — фейковий TEST бек-офіс. Це не живий банк. Перекази тільки внутрішні book-to-book між рахунками цього workspace. Немає потоків payment-провайдера." },
+        { "type": "h3", "text": "Що можна робити" },
+        { "type": "ul", "items": [
+          "Увійти і вийти.",
+          "Фільтрувати, сортувати, пагінувати, створювати, редагувати, видаляти, відкривати, freeze/unfreeze і експортувати корпоративні рахунки.",
+          "Створювати внутрішні перекази і фільтрувати список.",
+          "Інвайтити учасників і читати ролі.",
+          "Читати audit: login, freeze, create, update, delete, transfer, invite.",
+          "Дивитись живі REST-виклики у вкладці API."
+        ]},
+        { "type": "note", "text": "Звіряй три джерела: цю специфікацію, таблицю в UI і Network / вкладку API. Вони мають збігатись." }
+      ]
+    },
+    {
+      "id": "environment",
+      "title": "2. Середовище",
+      "blocks": [
+        { "type": "table", "headers": ["Що", "Значення"], "rows": [
+          ["Бейдж", "TEST"],
+          ["Base URL", "/sandbox/"],
+          ["API base", "/sandbox/api/v1/"],
+          ["Auth header", "Authorization: Bearer <token>"],
+          ["Demo token", "ng-demo-token"],
+          ["Сховище", "localStorage браузера"],
+          ["API через", "Service Worker на /sandbox/sw.js"],
+          ["CSV-файл", "northgate-accounts.csv"]
+        ]},
+        { "type": "p", "text": "REST іде через Service Worker. Chrome DevTools → Network → Fetch/XHR показує виклики (часто з позначкою from ServiceWorker). Стан лишається в localStorage. Перший кадр може показати “Loading console…”, поки worker не готовий. Playwright E2E може waitForResponse. Playwright request (Node HTTP) цю фейкову API не вдарить." },
+        { "type": "h3", "text": "Ключі localStorage" },
+        { "type": "table", "headers": ["Ключ", "Що лежить"], "rows": [
+          ["mk-ng-token", "Токен сесії після логіну"],
+          ["mk-ng-accounts", "Рядки рахунків"],
+          ["mk-ng-transfers", "Рядки переказів"],
+          ["mk-ng-members", "Учасники Access"],
+          ["mk-ng-audit", "Події audit"],
+          ["mk-ng-open", "Кеш KPI Open accounts"],
+          ["mk-access-found", "Рахунок хантера на сторінці челенджу"]
+        ]},
+        { "type": "p", "text": "Reset app + score на сторінці челенджу чистить ці ключі і повертає seed." }
+      ]
+    },
+    {
+      "id": "auth",
+      "title": "3. Auth",
+      "blocks": [
+        { "type": "h3", "text": "Демо-користувач" },
+        { "type": "table", "headers": ["Поле", "Значення"], "rows": [
+          ["Email", "ada.chen@northgate.test"],
+          ["Password", "Access123!"],
+          ["Name", "Ada Chen"],
+          ["Role", "Admin"]
+        ]},
+        { "type": "p", "text": "Увійти може тільки цей користувач. Форма логіну вже має демо-email. Після входу рядок сесії: Ada Chen · Admin. Поки Sign in летить, login-submit disabled." },
+        { "type": "h3", "text": "POST /sandbox/api/v1/auth/login" },
+        { "type": "code", "text": "POST /sandbox/api/v1/auth/login\nContent-Type: application/json\n\n{ \"email\": \"ada.chen@northgate.test\", \"password\": \"Access123!\" }" },
+        { "type": "p", "text": "Успіх: 200. У body є token і user. Токен зберігається і далі йде як Bearer. У audit пишеться LOGIN з result OK." },
+        { "type": "code", "text": "200\n{\n  \"token\": \"ng-demo-token\",\n  \"user\": {\n    \"email\": \"ada.chen@northgate.test\",\n    \"name\": \"Ada Chen\",\n    \"role\": \"Admin\"\n  }\n}" },
+        { "type": "p", "text": "Невірний email або пароль: 401 Unauthorized. Це не 403. 403 — це «залогінений, але не має права». Провалений логін — це відсутність автентифікації." },
+        { "type": "h3", "text": "POST /sandbox/api/v1/auth/logout" },
+        { "type": "p", "text": "Успіх: 204 і порожнє body. Токен треба прибрати. Reload після logout має показати форму логіну, не консоль. GET /me без токена має дати 401." },
+        { "type": "h3", "text": "GET /sandbox/api/v1/me" },
+        { "type": "p", "text": "Потрібен Bearer. 200 — демо-юзер. Немає токена або він невірний: 401 на всіх маршрутах, крім login." },
+        { "type": "h3", "text": "Локатори UI" },
+        { "type": "table", "headers": ["testid", "Контрол"], "rows": [
+          ["login-form", "Форма входу"],
+          ["login-email", "Email"],
+          ["login-password", "Password"],
+          ["login-submit", "Sign in"],
+          ["login-error", "Текст помилки після проваленого логіну"],
+          ["logout", "Log out"],
+          ["back-login", "Back to login після виходу"],
+          ["session-user", "Ada Chen · Admin"],
+          ["env-badge", "TEST"],
+          ["console-shell", "Шел після логіну"],
+          ["tab-accounts / tab-transfers / tab-access / tab-audit / tab-api", "Вкладки"]
+        ]}
+      ]
+    },
+    {
+      "id": "accounts",
+      "title": "4. Accounts",
+      "blocks": [
+        { "type": "p", "text": "Вкладка Accounts. У seed 8 рядків. У UI page size = 5. Якщо в API не передати pageSize, дефолт 20. Рахунки — повний CRUD. Freeze/Unfreeze — окремий PATCH, не форма Edit." },
+        { "type": "table", "headers": ["Op", "UI", "HTTP", "Persist"], "rows": [
+          ["Create", "Add account", "POST /sandbox/api/v1/accounts", "Так. Новий рядок на сторінці 1. Audit CREATE / OK"],
+          ["Read", "Таблиця, пейджер, drawer", "GET /accounts і GET /accounts/:id", "—"],
+          ["Update", "Edit / Edit account", "PUT /sandbox/api/v1/accounts/:id", "Так. Наступний GET і reload. Audit UPDATE / OK"],
+          ["Delete", "Delete", "DELETE /sandbox/api/v1/accounts/:id", "Так, якщо не 409 pending transfers. Audit DELETE / OK"],
+          ["Freeze", "Freeze / Unfreeze", "PATCH /sandbox/api/v1/accounts/:id", "Зміна status має зберегтись. Це не PUT"]
+        ]},
+        { "type": "h3", "text": "Seed-рахунки (значення API)" },
+        { "type": "table", "headers": ["id", "Client", "IBAN", "Type", "CCY", "Balance", "Status"], "rows": [
+          ["acc-1", "Northgate Ops", "NG00 1000 0000 0001", "Operating", "EUR", "125000.50", "Active"],
+          ["acc-2", "Northgate Ops", "NG00 1000 0000 0002", "Operating", "USD", "8800.00", "Active"],
+          ["acc-3", "Ada Chen", "NG00 1000 0000 0003", "Current", "EUR", "4200.50", "Active"],
+          ["acc-4", "Bohdan Koval", "NG00 1000 0000 0004", "Current", "EUR", "150.00", "Frozen"],
+          ["acc-5", "Clara West", "NG00 1000 0000 0005", "Current", "GBP", "0.00", "Active"],
+          ["acc-6", "Vendor Holdings", "NG00 1000 0000 0006", "Escrow", "EUR", "0.00", "Closed"],
+          ["acc-7", "Demo Viewer", "NG00 1000 0000 0007", "Current", "USD", "99.99", "Active"],
+          ["acc-8", "Baltic Payroll", "NG00 1000 0000 0008", "Payroll", "EUR", "50200.00", "Active"]
+        ]},
+        { "type": "h3", "text": "KPI — GET /stats" },
+        { "type": "p", "text": "Open accounts має дорівнювати кількості Active рядків (на seed це 6). Frozen = 1. Closed = 1. Pending transfers = кількість переказів зі статусом Pending (на seed це 2)." },
+        { "type": "code", "text": "GET /sandbox/api/v1/stats\n200 { \"open\": 6, \"frozen\": 1, \"closed\": 1, \"pending\": 2 }" },
+        { "type": "h3", "text": "Фільтри — GET /accounts" },
+        { "type": "p", "text": "Apply filters шле query-параметри. Clear скидає їх і page на 1. Порожній список показує “No accounts match these filters.”" },
+        { "type": "table", "headers": ["Query", "Правило"], "rows": [
+          ["q", "Підрядок без урахування регістру по holder або IBAN"],
+          ["status", "All | Active | Frozen | Closed. Active має ховати Frozen і Closed"],
+          ["currency", "All | EUR | USD | GBP. Лишає лише цю валюту"],
+          ["minBalance", "Включно: balance >= min"],
+          ["maxBalance", "Включно: balance <= max. Рядок з balance 150 має лишитись при max=150"],
+          ["sort=holder", "Сортування за іменем клієнта (holder), не за IBAN"],
+          ["dir", "asc (дефолт) або desc"],
+          ["page", "З 1. UI стартує з 1"],
+          ["pageSize", "UI ставить 5. API 1–100, дефолт 20"]
+        ]},
+        { "type": "code", "text": "GET /sandbox/api/v1/accounts?q=&status=All&currency=All&minBalance=&maxBalance=&page=1&pageSize=5\n200 { \"items\": [ ... ], \"total\": 8, \"page\": 1, \"pageSize\": 5 }" },
+        { "type": "h3", "text": "Таблиця, пейджер, CSV" },
+        { "type": "ul", "items": [
+          "Колонки: Client, IBAN, Type, CCY, Balance, Status, Actions (Edit, Freeze/Unfreeze, Delete).",
+          "Баланс у таблиці має збігатись з GET /accounts і GET /accounts/:id (Ada Chen — 4200.50, не 4200).",
+          "Заголовок Client (sort-holder) сортує за holder. Клік, Enter або Space.",
+          "Previous / Next. На сторінці 1 Previous disabled. На останній — Next disabled.",
+          "Export CSV бере поточні фільтри, page=1, pageSize=100. Файл northgate-accounts.csv. Колонки: id,holder,iban,type,currency,balance,status."
+        ]},
+        { "type": "h3", "text": "Створення — POST /accounts" },
+        { "type": "p", "text": "Форма Add account. Новий рядок зверху списку (сторінка 1). Types: Current, Operating, Payroll, Escrow. Валюти: EUR, USD, GBP. Status: Active, Frozen, Closed. Balance за замовчуванням 0. Поки POST летить, account-create-submit disabled." },
+        { "type": "code", "text": "POST /sandbox/api/v1/accounts\n{ \"holder\": \"Test Client\", \"iban\": \"NG00 1000 0000 0099\", \"type\": \"Current\", \"currency\": \"EUR\", \"balance\": 10, \"status\": \"Active\" }\n\n201 { \"id\": \"acc-…\", \"holder\": \"Test Client\", \"iban\": \"NG00 1000 0000 0099\", \"type\": \"Current\", \"currency\": \"EUR\", \"balance\": 10, \"status\": \"Active\" }" },
+        { "type": "table", "headers": ["Кейс", "HTTP", "Body"], "rows": [
+          ["Валідно", "201", "Об'єкт рахунку. Audit CREATE / OK"],
+          ["Немає holder або IBAN", "400", "{ \"error\": \"Holder and IBAN are required.\" }"],
+          ["Невірна currency, type або status", "400", "{ \"error\": \"Invalid currency|type|status\" }"],
+          ["IBAN уже є (пробіли ігноруються, без регістру)", "409", "{ \"error\": \"DUPLICATE_IBAN\" }"]
+        ]},
+        { "type": "h3", "text": "Редагування — PUT /accounts/:id" },
+        { "type": "p", "text": "У кожного рядка є Edit. У drawer також є Edit account. Форма — модал (role=dialog, aria-modal) і вже заповнена. Save шле PUT з holder, iban, type, currency, balance, status. Зміна має зберегтись: наступний GET і reload показують нові значення. Cancel, клік по оверлею і Escape не мають бити API. Після закриття фокус повертається на контрол, який відкрив діалог. id рахунку не змінюється. Валідація як у create. Дубль IBAN — 409, крім IBAN цього ж рядка. Поки PUT летить, account-edit-submit disabled." },
+        { "type": "code", "text": "PUT /sandbox/api/v1/accounts/acc-7\n{ \"holder\": \"Demo Viewer\", \"iban\": \"NG00 1000 0000 0007\", \"type\": \"Current\", \"currency\": \"USD\", \"balance\": 150, \"status\": \"Active\" }\n\n200 { \"id\": \"acc-7\", \"holder\": \"Demo Viewer\", \"iban\": \"NG00 1000 0000 0007\", \"type\": \"Current\", \"currency\": \"USD\", \"balance\": 150, \"status\": \"Active\" }" },
+        { "type": "table", "headers": ["Кейс", "HTTP", "Body"], "rows": [
+          ["Валідно", "200", "Оновлений рахунок. Audit UPDATE / OK"],
+          ["Невідомий id", "404", "{ \"error\": \"Not found\" }"],
+          ["Немає holder або IBAN", "400", "{ \"error\": \"Holder and IBAN are required.\" }"],
+          ["Невірна currency, type або status", "400", "{ \"error\": \"Invalid currency|type|status\" }"],
+          ["IBAN зайнятий іншим рахунком", "409", "{ \"error\": \"DUPLICATE_IBAN\" }"]
+        ]},
+        { "type": "h3", "text": "Видалення — DELETE /accounts/:id" },
+        { "type": "p", "text": "У кожного рядка є Delete. Спочатку confirm (role=dialog, aria-modal). Один діалог одночасно. Cancel, клік по оверлею і Escape не мають бити API. Після закриття фокус повертається на Delete. Видалення має зберегтись: наступний GET і reload без цього рядка. Якщо є Pending-переказ (from або to) — 409 ACCOUNT_HAS_PENDING_TRANSFERS, рядок лишається. Невідомий id: 404. У seed acc-1 і acc-5 мають pending — delete має впасти. acc-6 Closed без pending — delete має пройти." },
+        { "type": "code", "text": "DELETE /sandbox/api/v1/accounts/acc-6\n204 порожнє body\n\nDELETE /sandbox/api/v1/accounts/acc-1\n409 { \"error\": \"ACCOUNT_HAS_PENDING_TRANSFERS\" }" },
+        { "type": "h3", "text": "Drawer рахунку" },
+        { "type": "p", "text": "Клік по рядку. GET /accounts/:id. Невідомий id: 404. Drawer: IBAN, type, currency, Balance (API), status, account id. Copy IBAN пише IBAN у буфер. Edit account відкриває ту саму PUT-форму, що й Edit у рядку. Related transfers — де from або to дорівнює цьому id. Close знімає вибір." },
+        { "type": "h3", "text": "Freeze / Unfreeze — PATCH /accounts/:id" },
+        { "type": "p", "text": "У Closed немає Freeze. Active — Freeze. Frozen — Unfreeze. Спочатку confirm-модал. Confirm шле PATCH { \"status\": \"Frozen\" } або { \"status\": \"Active\" } — не PUT. Edit/PUT — інший контракт і має зберігати поля. Після PATCH новий статус має зберегтись: наступний GET і reload показують його. Toast: Request accepted: Frozen|Active. Cancel, клік по оверлею і Escape не мають бити API. Після закриття фокус повертається на Freeze/Unfreeze." },
+        { "type": "code", "text": "PATCH /sandbox/api/v1/accounts/acc-1\n{ \"status\": \"Frozen\" }\n\n200 { \"id\": \"acc-1\", \"status\": \"Frozen\", ... }\nGET /sandbox/api/v1/accounts/acc-1 → status Frozen" },
+        { "type": "h3", "text": "Локатори UI" },
+        { "type": "table", "headers": ["testid", "Контрол"], "rows": [
+          ["kpi-open / kpi-frozen / kpi-pending", "Картки KPI"],
+          ["account-filters", "Форма фільтрів"],
+          ["account-search", "Пошук"],
+          ["account-status / account-currency", "Селекти"],
+          ["account-min / account-max", "Межі балансу"],
+          ["account-apply / account-clear", "Apply / Clear"],
+          ["account-table / account-row", "Таблиця / рядок"],
+          ["account-balance / iban", "Комірки"],
+          ["sort-holder", "Колонка Client (клік / Enter / Space)"],
+          ["account-total / account-pager / account-empty", "Мета / пейджер / порожньо"],
+          ["account-prev / account-next / account-export", "Пейджер + CSV"],
+          ["account-create / account-create-submit / account-create-error", "Форма Add account"],
+          ["account-holder / account-iban / account-type / account-ccy", "Поля створення"],
+          ["account-balance-in / account-new-status", "Balance і status при створенні"],
+          ["account-edit", "Кнопка Edit у рядку"],
+          ["account-edit-modal / account-edit-form / account-edit-submit / account-edit-cancel / account-edit-error", "Діалог Edit"],
+          ["account-edit-holder / account-edit-iban / account-edit-type / account-edit-ccy / account-edit-balance / account-edit-status", "Поля Edit"],
+          ["account-freeze", "Freeze або Unfreeze"],
+          ["account-delete", "Видалити рядок"],
+          ["confirm-modal / confirm-ok / confirm-cancel", "Діалог confirm"],
+          ["account-drawer / drawer-close / copy-iban / account-drawer-edit", "Drawer"]
+        ]}
+      ]
+    },
+    {
+      "id": "transfers",
+      "title": "5. Transfers",
+      "blocks": [
+        { "type": "p", "text": "Тільки внутрішній book-to-book. Та сама валюта. У From і To тільки Active рахунки. Новий переказ має статус Pending і ref на кшталт NG-TX-######. Поки Create transfer летить, transfer-submit disabled." },
+        { "type": "h3", "text": "Seed-перекази" },
+        { "type": "table", "headers": ["ref", "from", "to", "amount", "ccy", "status", "date"], "rows": [
+          ["NG-TX-1001", "acc-1", "acc-8", "2500", "EUR", "Settled", "2026-08-28"],
+          ["NG-TX-1002", "acc-1", "acc-3", "120", "EUR", "Pending", "2026-08-30"],
+          ["NG-TX-1003", "acc-2", "acc-7", "40", "USD", "Failed", "2026-08-29"],
+          ["NG-TX-1004", "acc-8", "acc-4", "15", "EUR", "Settled", "2026-08-20"],
+          ["NG-TX-1005", "acc-1", "acc-5", "300", "EUR", "Pending", "2026-08-31"]
+        ]},
+        { "type": "h3", "text": "POST /sandbox/api/v1/transfers" },
+        { "type": "code", "text": "POST /sandbox/api/v1/transfers\n{ \"from\": \"acc-1\", \"to\": \"acc-8\", \"amount\": 10 }\n\n201 {\n  \"id\": \"tx-…\",\n  \"ref\": \"NG-TX-……\",\n  \"from\": \"acc-1\",\n  \"to\": \"acc-8\",\n  \"amount\": 10,\n  \"currency\": \"EUR\",\n  \"status\": \"Pending\",\n  \"createdAt\": \"YYYY-MM-DD\"\n}" },
+        { "type": "table", "headers": ["Кейс", "HTTP", "Body"], "rows": [
+          ["Валідно, вистачає коштів, та сама валюта", "201", "Об'єкт переказу, status Pending. Дебет джерела, кредит цілі. Audit TRANSFER / PENDING"],
+          ["Немає from, to або amount / amount ≤ 0", "400", "{ \"error\": \"Invalid transfer\" }"],
+          ["Різні валюти", "409", "{ \"error\": \"CURRENCY_MISMATCH\" }"],
+          ["amount > баланс джерела", "4xx (не 200)", "{ \"error\": \"INSUFFICIENT_FUNDS\" }. Гроші не рухаються"]
+        ]},
+        { "type": "h3", "text": "GET /sandbox/api/v1/transfers" },
+        { "type": "table", "headers": ["Query", "Правило"], "rows": [
+          ["status", "All | Pending | Settled | Failed"],
+          ["minAmount", "Включно: amount >= min"],
+          ["maxAmount", "Включно: amount <= max"]
+        ]},
+        { "type": "p", "text": "Локатори: transfer-form, transfer-from, transfer-to, transfer-amount, transfer-submit, transfer-error, transfer-filters, transfer-status, transfer-min, transfer-max, transfer-apply, transfer-table, transfer-row, transfer-ref." }
+      ]
+    },
+    {
+      "id": "access",
+      "title": "6. Access",
+      "blocks": [
+        { "type": "p", "text": "Вкладка Access. Учасники і ролі цього TEST workspace. Інвайт створює status Invited." },
+        { "type": "h3", "text": "Seed-учасники" },
+        { "type": "table", "headers": ["Name", "Email", "Role", "Status"], "rows": [
+          ["Ada Chen", "ada.chen@northgate.test", "Admin", "Active"],
+          ["Bohdan Koval", "bohdan.koval@northgate.test", "Member", "Active"],
+          ["Clara West", "clara.west@northgate.test", "Contractor", "Invited"],
+          ["Demo Viewer", "viewer@northgate.test", "Viewer", "Disabled"]
+        ]},
+        { "type": "p", "text": "Ролі для інвайту: Viewer, Member, Admin, Contractor. Роль у таблиці має дорівнювати тій, що ти відправив. Admin має лишитись Admin." },
+        { "type": "h3", "text": "GET /sandbox/api/v1/members" },
+        { "type": "code", "text": "200 { \"items\": [ { \"id\", \"name\", \"email\", \"role\", \"status\" } ], \"total\": 4 }" },
+        { "type": "h3", "text": "POST /sandbox/api/v1/members" },
+        { "type": "code", "text": "POST /sandbox/api/v1/members\n{ \"name\": \"Test User\", \"email\": \"test.user@northgate.test\", \"role\": \"Admin\" }\n\n201 { \"id\": \"u…\", \"name\": \"Test User\", \"email\": \"test.user@northgate.test\", \"role\": \"Admin\", \"status\": \"Invited\" }" },
+        { "type": "p", "text": "Немає name або email без @: 400 { \"error\": \"Name and email are required.\" }. Успіх пише audit INVITE / OK. Поки Invite летить, invite-submit disabled." },
+        { "type": "p", "text": "Локатори: invite-form, invite-name, invite-email, invite-role, invite-submit, member-table, member-row, member-role." }
+      ]
+    },
+    {
+      "id": "audit",
+      "title": "7. Audit",
+      "blocks": [
+        { "type": "p", "text": "GET /sandbox/api/v1/audit повертає { items }. Нові зверху. Максимум 40 рядків. Колонки: Time, Actor, Action, Target, Result." },
+        { "type": "table", "headers": ["Action", "Коли", "Target / result"], "rows": [
+          ["LOGIN", "Успішний логін", "console / OK"],
+          ["CREATE", "Додати рахунок", "id рахунку / OK"],
+          ["UPDATE", "Save у Edit", "id рахунку / OK"],
+          ["DELETE", "Confirm delete", "id рахунку / OK"],
+          ["FREEZE / UNFREEZE", "Confirm freeze або unfreeze", "id рахунку / ACCEPTED"],
+          ["TRANSFER", "Створення переказу", "ref / PENDING, або INSUFFICIENT_FUNDS"],
+          ["INVITE", "Інвайт учасника", "email / OK"]
+        ]},
+        { "type": "p", "text": "Локатори: audit-table, audit-row, audit-result." }
+      ]
+    },
+    {
+      "id": "api",
+      "title": "8. Каталог REST",
+      "blocks": [
+        { "type": "p", "text": "Виклики зі сторінки консолі через fetch. Chrome Network і вкладка API обидві показують живі відповіді. CRUD рахунків: POST create, GET list/detail, PUT edit, DELETE remove. PATCH лише freeze/unfreeze — не мішай його з Edit." },
+        { "type": "table", "headers": ["Method", "Path", "Auth", "Успіх"], "rows": [
+          ["POST", "/sandbox/api/v1/auth/login", "ні", "200 token + user"],
+          ["POST", "/sandbox/api/v1/auth/logout", "так", "204"],
+          ["GET", "/sandbox/api/v1/me", "так", "200 user"],
+          ["GET", "/sandbox/api/v1/stats", "так", "200 open, frozen, closed, pending"],
+          ["GET", "/sandbox/api/v1/audit", "так", "200 items"],
+          ["GET", "/sandbox/api/v1/accounts", "так", "200 items, total, page, pageSize"],
+          ["GET", "/sandbox/api/v1/accounts/:id", "так", "200 account або 404"],
+          ["POST", "/sandbox/api/v1/accounts", "так", "201 account"],
+          ["PUT", "/sandbox/api/v1/accounts/:id", "так", "200 оновлений account"],
+          ["PATCH", "/sandbox/api/v1/accounts/:id", "так", "200 account з новим status"],
+          ["DELETE", "/sandbox/api/v1/accounts/:id", "так", "204 або 409 pending transfers"],
+          ["GET", "/sandbox/api/v1/transfers", "так", "200 items, total"],
+          ["POST", "/sandbox/api/v1/transfers", "так", "201 transfer"],
+          ["GET", "/sandbox/api/v1/members", "так", "200 items, total"],
+          ["POST", "/sandbox/api/v1/members", "так", "201 member"],
+          ["*", "невідомий шлях", "—", "404 { \"error\": \"No route\" }"]
+        ]},
+        { "type": "p", "text": "Локатори: api-routes, api-log. Кнопка Docs на сторінці челенджу відкриває цю спеку." }
+      ]
+    },
+    {
+      "id": "testing",
+      "title": "9. Як тестувати",
+      "blocks": [
+        { "type": "ul", "items": [
+          "UI: логін, фільтри, додати рахунок, редагувати, видалити, пагінація, drawer, confirm freeze, переказ, інвайт, CSV, logout + reload.",
+          "Діалоги: Edit і Confirm — role=dialog, aria-modal. Cancel, клік по оверлею і Escape не б'ють API. Фокус повертається на opener. Один діалог одночасно.",
+          "Клавіатура: заголовок Client Enter/Space сортує. Submit disabled, поки запит летить (без подвійного create/edit/transfer/invite/login).",
+          "API: ті самі маршрути у вкладці API або DevTools Network. Статус і body — проти цієї специфікації.",
+          "UI vs API: баланс у таблиці, KPI vs кількість Active, PUT vs наступний GET, PATCH freeze vs наступний GET.",
+          "Негатив: невірний пароль, порожній інвайт, дубль IBAN на create і на edit, delete з pending-переказом, різна валюта, сума більша за баланс, max balance = 150, пошук імен з маленької.",
+          "Локатори: data-testid на контролах вище. Не цілься в CSS-класи.",
+          "Playwright E2E: page.goto('/sandbox/'), getByTestId, waitForResponse.",
+          "Playwright request fixture цю in-browser API не дістане. Не пиши API-тести, які чекають живий HTTP-сервер тут."
+        ]},
+        { "type": "note", "text": "На сторінці челенджу є підказки про посаджені баги. Ця специфікація їх не називає. Спека — це очікуваний результат." }
+      ]
+    }
+  ]
+}

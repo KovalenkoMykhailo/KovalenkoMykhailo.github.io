@@ -30,8 +30,18 @@
 
   const paragraphs = (texts) => (texts || []).map((text) => el("p", { text }));
 
+  function svgIcon(className, html) {
+    const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+    svg.setAttribute("class", className);
+    svg.setAttribute("viewBox", "0 0 24 24");
+    svg.setAttribute("aria-hidden", "true");
+    svg.setAttribute("focusable", "false");
+    svg.innerHTML = html;
+    return svg;
+  }
+
   async function loadJson(path) {
-    const res = await fetch(base + path);
+    const res = await fetch(base + path, { cache: "no-store" });
     if (!res.ok) throw new Error("Cannot load " + path);
     return res.json();
   }
@@ -57,9 +67,15 @@
   function setTheme(theme) {
     localStorage.setItem("site-theme", theme);
     applyTheme(theme);
-    document.querySelectorAll("[data-theme-btn]").forEach((btn) => {
-      btn.setAttribute("aria-pressed", String(btn.dataset.themeBtn === theme));
-    });
+    const btn = document.querySelector("[data-theme-toggle]");
+    if (btn) {
+      btn.setAttribute("aria-pressed", String(theme === "dark"));
+      btn.setAttribute("data-theme", theme);
+    }
+  }
+
+  function toggleTheme() {
+    setTheme(root.dataset.theme === "dark" ? "light" : "dark");
   }
 
   function setLang(lang) {
@@ -70,6 +86,9 @@
   function contentFile(lang) {
     if (page === "notes") return `content/notes-${lang}.json`;
     if (page === "qa") return `content/qa-${lang}.json`;
+    if (page === "sandbox") return `content/sandbox-${lang}.json`;
+    if (page === "sandbox-docs") return `content/sandbox-docs-${lang}.json`;
+    if (page === "learn") return `content/learn-${lang}.json`;
     return `content/${lang}.json`;
   }
 
@@ -92,7 +111,22 @@
     return hash ? path + "#" + hash : path;
   }
 
-  const CV_SECTIONS = ["top", "experience", "skills", "contact"];
+  function sandboxHref() {
+    return page === "sandbox" ? "./" : base + "sandbox/";
+  }
+
+  function sandboxDocsHref(hash) {
+    const id = hash || "docs";
+    if (page === "sandbox") return "#" + id;
+    return sandboxHref() + "#" + id;
+  }
+
+  function learnHref() {
+    return page === "learn" ? "./" : base + "learn/";
+  }
+
+  const CV_SECTIONS = ["top", "experience", "skills", "fit", "contact"];
+  const FOUND_KEY = "mk-access-found";
 
   function hashId() {
     return decodeURIComponent((location.hash || "").replace("#", ""));
@@ -250,6 +284,27 @@
       return "https://t.me/" + value.replace(/^@/, "");
     }
     return value;
+  }
+
+  function contactNick(type, value) {
+    if (type === "email") return value;
+    try {
+      if (type === "telegram") {
+        if (value.includes("t.me/")) return "@" + value.split("t.me/")[1].replace(/\/$/, "");
+        return value.startsWith("@") ? value : "@" + value;
+      }
+      const path = new URL(value).pathname.split("/").filter(Boolean);
+      return path[path.length - 1] || value;
+    } catch {
+      return value;
+    }
+  }
+
+  function contactIco(type) {
+    if (type === "email") return "@";
+    if (type === "linkedin") return "in";
+    if (type === "telegram") return "tg";
+    return "gh";
   }
 
   function setMenuOpen(open) {
@@ -414,19 +469,33 @@
       { id: "contact", label: nav.contacts, hint: "CV", href: homeHref("contact"), section: "contact" },
       { id: "notes", label: nav.notes, hint: nav.pages || "Pages", href: notesHref() },
       { id: "qa", label: nav.qa, hint: nav.pages || "Pages", href: qaHref() },
+      { id: "sandbox", label: nav.challenge, hint: nav.pages || "Pages", href: sandboxHref() },
       {
-        id: "theme-light",
-        label: lang === "uk" ? "Світла тема" : "Light theme",
-        hint: nav.command,
-        run: () => setTheme("light"),
+        id: "sandbox-docs",
+        label: nav.consoleDocs || (lang === "uk" ? "Доку консолі" : "Console docs"),
+        hint: nav.pages || "Pages",
+        href: sandboxDocsHref(),
       },
+      { id: "learn", label: nav.learn, hint: nav.pages || "Pages", href: learnHref() },
+      { id: "fit", label: nav.fit, hint: "CV", href: homeHref("fit"), section: "fit" },
       {
-        id: "theme-dark",
-        label: lang === "uk" ? "Темна тема" : "Dark theme",
+        id: "theme",
+        label: lang === "uk" ? "Перемкнути тему" : "Toggle theme",
         hint: nav.command,
-        run: () => setTheme("dark"),
+        run: () => toggleTheme(),
       },
     ];
+    const guide = chrome.guide;
+    if (page === "sandbox" && guide && guide.sections) {
+      guide.sections.forEach((section) => {
+        items.push({
+          id: "g-" + section.id,
+          label: section.title,
+          hint: nav.consoleDocs || "Docs",
+          href: sandboxDocsHref(section.id),
+        });
+      });
+    }
     if (hasContact(site && site.pdf)) {
       items.push({
         id: "pdf",
@@ -631,9 +700,22 @@
   function renderHeader(nav, site, lang) {
     const pdfReady = hasContact(site.pdf);
     const theme = detectTheme();
-    const themeLabel = lang === "uk" ? "Тема" : "Theme";
+    const themeLabel = lang === "uk" ? "Світла або темна тема" : "Light or dark theme";
     const shortcut = isMac ? "⌘K" : "Ctrl+K";
+    const ctaFull =
+      (chrome.data && chrome.data.hero && chrome.data.hero.challengeCta) ||
+      (lang === "uk" ? "Спробуй себе як QA" : "Try yourself as a QA");
     const actions = el("div", { class: "header-actions" }, [
+      el("a", {
+        class: "btn btn-primary challenge-cta",
+        href: sandboxHref(),
+        "data-testid": "challenge-cta",
+        "aria-current": page === "sandbox" ? "page" : null,
+        onClick: closeMenu,
+      }, [
+        el("span", { class: "cta-full", text: ctaFull }),
+        el("span", { class: "cta-short", text: nav.challenge }),
+      ]),
       el("button", {
         class: "cmd-btn",
         type: "button",
@@ -659,21 +741,27 @@
               onClick: () => window.print(),
             })
           : null,
-      el("div", { class: "lang", role: "group", "aria-label": themeLabel }, [
-        el("button", {
-          type: "button",
-          text: lang === "uk" ? "Світла" : "Light",
-          "data-theme-btn": "light",
-          "aria-pressed": theme === "light",
-          onClick: () => setTheme("light"),
-        }),
-        el("button", {
-          type: "button",
-          text: lang === "uk" ? "Темна" : "Dark",
-          "data-theme-btn": "dark",
-          "aria-pressed": theme === "dark",
-          onClick: () => setTheme("dark"),
-        }),
+      el("button", {
+        class: "theme-toggle",
+        type: "button",
+        "data-theme-toggle": "true",
+        "data-theme": theme,
+        "aria-pressed": theme === "dark",
+        "aria-label": themeLabel,
+        title: themeLabel,
+        onClick: toggleTheme,
+      }, [
+        el("span", { class: "theme-toggle-track", "aria-hidden": "true" }, [
+          svgIcon(
+            "theme-icon theme-icon-sun",
+            '<circle cx="12" cy="12" r="4" fill="currentColor"/><g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"/></g>'
+          ),
+          el("span", { class: "theme-toggle-knob" }),
+          svgIcon(
+            "theme-icon theme-icon-moon",
+            '<path fill="currentColor" d="M21 14.5A8.5 8.5 0 0 1 9.5 3 7.2 7.2 0 0 0 12 21a8.5 8.5 0 0 0 9-6.5z"/>'
+          ),
+        ]),
       ]),
       el("div", { class: "lang", role: "group", "aria-label": "Language" }, [
         el("button", {
@@ -736,6 +824,12 @@
               "data-cv-section": "contact",
               onClick: (event) => goToCvSection("contact", event),
             }),
+            el("a", {
+              href: homeHref("fit"),
+              text: nav.fit,
+              "data-cv-section": "fit",
+              onClick: (event) => goToCvSection("fit", event),
+            }),
           ]),
           el("span", { class: "nav-split", "aria-hidden": "true" }),
           el("div", { class: "nav-group nav-pages", "aria-label": nav.pages || "Pages" }, [
@@ -750,6 +844,19 @@
               href: qaHref(),
               text: nav.qa,
               "aria-current": page === "qa" ? "page" : null,
+              onClick: closeMenu,
+            }),
+            el("a", {
+              href: learnHref(),
+              text: nav.learn,
+              "aria-current": page === "learn" ? "page" : null,
+              onClick: closeMenu,
+            }),
+            el("a", {
+              class: "nav-challenge",
+              href: sandboxHref(),
+              text: nav.challenge,
+              "aria-current": page === "sandbox" ? "page" : null,
               onClick: closeMenu,
             }),
           ]),
@@ -897,7 +1004,121 @@
     return form;
   }
 
-  function renderHome(data, site) {
+  function matchFitKey(haystack, key) {
+    const k = String(key).toLowerCase();
+    const escaped = k.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+    if (k.indexOf(" ") !== -1) return haystack.indexOf(k) !== -1;
+    return new RegExp("(^|[^a-z0-9+#])" + escaped + "([^a-z0-9+#]|$)", "i").test(haystack);
+  }
+
+  function renderFitSection(copy, catalog, lang) {
+    const box = el("div", { class: "fit-result", "data-testid": "fit-result" });
+    const area = el("textarea", {
+      class: "fit-jd",
+      rows: "8",
+      placeholder: copy.placeholder,
+      "data-testid": "fit-jd",
+      "aria-label": copy.title,
+    });
+    const file = el("input", {
+      type: "file",
+      accept: ".txt,text/plain",
+      hidden: true,
+      "data-testid": "fit-file",
+    });
+
+    const paintResult = (jd) => {
+      const hay = " " + String(jd || "").toLowerCase() + " ";
+      const hits = (catalog.items || []).filter((item) =>
+        (item.keys || []).some((key) => matchFitKey(hay, key))
+      );
+      box.replaceChildren();
+      if (!String(jd || "").trim()) {
+        box.append(el("p", { class: "lede", text: copy.waiting }));
+        return;
+      }
+      if (!hits.length) {
+        box.append(el("p", { class: "lede", text: copy.empty }));
+        return;
+      }
+      const strong = hits.filter((item) => item.level === "strong").length;
+      const prev = hits.filter((item) => item.level === "previous").length;
+      const score = Math.round((100 * (strong + 0.5 * prev)) / hits.length);
+      box.append(
+        el("p", { class: "fit-score", "data-testid": "fit-score" }, [
+          el("span", { class: "fit-score-num", text: String(score) + "%" }),
+          el("span", { text: copy.score }),
+        ])
+      );
+      ["strong", "previous", "none"].forEach((level) => {
+        const rows = hits.filter((item) => item.level === level);
+        if (!rows.length) return;
+        box.append(
+          el("div", { class: "fit-group" }, [
+            el("h3", { text: copy[level] }),
+            el(
+              "ul",
+              { class: "chips" },
+              rows.map((row) =>
+                el("li", {
+                  class: "fit-chip fit-chip-" + level,
+                  text: lang === "uk" ? row.uk : row.en,
+                })
+              )
+            ),
+          ])
+        );
+      });
+    };
+
+    paintResult("");
+    file.addEventListener("change", () => {
+      const picked = file.files && file.files[0];
+      if (!picked) return;
+      const reader = new FileReader();
+      reader.onload = () => {
+        area.value = String(reader.result || "");
+        paintResult(area.value);
+      };
+      reader.readAsText(picked);
+    });
+
+    return el("section", { id: "fit" }, [
+      el("h2", { text: copy.title }),
+      el("p", { class: "lede", text: copy.lead }),
+      el("p", { class: "fit-hint", text: copy.hint }),
+      area,
+      file,
+      el("div", { class: "fit-actions" }, [
+        el("button", {
+          class: "btn btn-primary",
+          type: "button",
+          text: copy.analyze,
+          "data-testid": "fit-analyze",
+          onClick: () => paintResult(area.value),
+        }),
+        el("button", {
+          class: "btn btn-ghost",
+          type: "button",
+          text: copy.sample,
+          "data-testid": "fit-sample",
+          onClick: () => {
+            area.value = copy.sampleJd;
+            paintResult(area.value);
+          },
+        }),
+        el("button", {
+          class: "btn btn-ghost",
+          type: "button",
+          text: copy.upload,
+          onClick: () => file.click(),
+        }),
+      ]),
+      box,
+    ]);
+  }
+
+  function renderHome(data, site, fitCatalog) {
     const c = data.contact;
     const p = data.projects;
     const links = [
@@ -949,24 +1170,31 @@
     };
 
     const main = document.getElementById("main");
+    const wins = data.wins;
     main.replaceChildren(
       el("section", { class: "hero", id: "top" }, [
         el("div", { class: "hero-copy" }, [
+          data.hero.badge ? el("p", { class: "badge badge-open", text: data.hero.badge }) : null,
           el("h1", { text: data.hero.name }),
           el("p", { class: "role", text: data.hero.role }),
           el("p", { class: "location", text: data.hero.location }),
           el("p", { class: "pitch", text: data.hero.pitch }),
           el("div", { class: "hero-actions" }, [
+            el("a", {
+              class: "btn btn-primary",
+              href: sandboxHref(),
+              text: data.hero.challengeCta || data.nav.challenge,
+            }),
             hasContact(site.pdf)
               ? el("a", {
-                  class: "btn btn-primary",
+                  class: "btn btn-ghost",
                   href: href(site.pdf),
                   download: "",
                   text: data.nav.download,
                 })
               : hasContact(site.email)
                 ? el("a", {
-                    class: "btn btn-primary",
+                    class: "btn btn-ghost",
                     href: "mailto:" + site.email,
                     text: c.email,
                   })
@@ -989,6 +1217,21 @@
         el("h2", { text: data.about.title }),
         ...paragraphs(data.about.paragraphs),
       ]),
+      wins
+        ? el("section", { id: "wins" }, [
+            el("h2", { text: wins.title }),
+            el(
+              "div",
+              { class: "wins-grid" },
+              (wins.items || []).map((item) =>
+                el("article", { class: "win-card" }, [
+                  el("p", { class: "win-tag", text: item.tag }),
+                  el("p", { text: item.text }),
+                ])
+              )
+            ),
+          ])
+        : el("section", { id: "wins", hidden: true }),
       el("section", { id: "now" }, [
         el("h2", { text: data.now.title }),
         el("div", { class: "now-card" }, [
@@ -1013,7 +1256,10 @@
           el("article", { class: "job" }, [
             el("div", { class: "job-head" }, [
               el("h3", { text: job.company + " · " + job.role }),
-              job.period ? el("span", { class: "period", text: job.period }) : null,
+              el("div", { class: "job-meta" }, [
+                job.domain ? el("span", { class: "domain-chip", text: job.domain }) : null,
+                job.period ? el("span", { class: "period", text: job.period }) : null,
+              ]),
             ]),
             job.place ? el("p", { class: "place", text: job.place }) : null,
             el(
@@ -1078,6 +1324,9 @@
         ),
         list,
       ]),
+      data.fit
+        ? renderFitSection(data.fit, fitCatalog || { items: [] }, chrome.lang)
+        : el("section", { id: "fit", hidden: true }),
       el("section", { id: "contact" }, [
         el("h2", { text: c.title }),
         links.length
@@ -1085,27 +1334,30 @@
               "div",
               { class: "contacts" },
               links.map(([type, label, value]) => {
-                if (type === "email") {
-                  return el("div", { class: "contact-row" }, [
-                    el("a", {
-                      href: contactHref(type, value),
-                      text: value,
-                    }),
-                    el("button", {
-                      class: "copy-btn",
-                      type: "button",
-                      "data-testid": "copy-email",
-                      text: c.copy,
-                      onClick: (event) => copyText(value, c.copied, event.currentTarget),
-                    }),
-                  ]);
-                }
-                return el("a", {
+                const card = el("a", {
+                  class: "contact-card",
                   href: contactHref(type, value),
-                  text: label,
-                  rel: "noreferrer",
-                  target: "_blank",
-                });
+                  rel: type === "email" ? null : "noreferrer",
+                  target: type === "email" ? null : "_blank",
+                }, [
+                  el("span", { class: "contact-ico", "aria-hidden": "true", text: contactIco(type) }),
+                  el("span", { class: "contact-copy" }, [
+                    el("span", { class: "contact-label", text: label }),
+                    el("span", { class: "contact-nick", text: contactNick(type, value) }),
+                  ]),
+                  el("span", { class: "contact-arrow", "aria-hidden": "true", text: "→" }),
+                ]);
+                if (type !== "email") return card;
+                return el("div", { class: "contact-row" }, [
+                  card,
+                  el("button", {
+                    class: "copy-btn",
+                    type: "button",
+                    "data-testid": "copy-email",
+                    text: c.copy,
+                    onClick: (event) => copyText(value, c.copied, event.currentTarget),
+                  }),
+                ]);
               })
             )
           : el("p", { class: "empty-contacts", text: c.empty }),
@@ -1324,8 +1576,339 @@
     paintQa();
   }
 
-  function renderFooter(text) {
-    document.getElementById("site-footer").textContent = text;
+  function readFound() {
+    try {
+      const raw = JSON.parse(localStorage.getItem(FOUND_KEY) || "[]");
+      return Array.isArray(raw) ? raw : [];
+    } catch {
+      return [];
+    }
+  }
+
+  function writeFound(ids) {
+    localStorage.setItem(FOUND_KEY, JSON.stringify(ids));
+  }
+
+  function renderGuideBlocks(blocks) {
+    return (blocks || []).map((block) => {
+      if (!block || !block.type) return null;
+      if (block.type === "p") return el("p", { text: block.text });
+      if (block.type === "h3") return el("h3", { text: block.text });
+      if (block.type === "note") return el("p", { class: "guide-note", text: block.text });
+      if (block.type === "code") return el("pre", { class: "guide-code", text: block.text });
+      if (block.type === "ul") {
+        return el("ul", {}, (block.items || []).map((item) => el("li", { text: item })));
+      }
+      if (block.type === "table") {
+        return el("div", { class: "guide-table-wrap" }, [
+          el("table", { class: "guide-table" }, [
+            el("thead", {}, [
+              el("tr", {}, (block.headers || []).map((header) => el("th", { text: header }))),
+            ]),
+            el("tbody", {}, (block.rows || []).map((row) =>
+              el("tr", {}, (row || []).map((cell) => el("td", { text: cell })))
+            )),
+          ]),
+        ]);
+      }
+      return null;
+    });
+  }
+
+  function buildGuideLayout(guide) {
+    const sections = (guide && guide.sections) || [];
+    return el("div", { class: "guide-layout", "data-testid": "console-docs-page" }, [
+      el("nav", { class: "guide-toc", "aria-label": guide.toc }, [
+        el("p", { class: "guide-toc-label", text: guide.toc }),
+        ...sections.map((section) =>
+          el("a", { href: "#" + section.id, text: section.title })
+        ),
+      ]),
+      el("div", { class: "guide-body" },
+        sections.map((section) =>
+          el("section", {
+            class: "guide-section note",
+            id: section.id,
+          }, [
+            el("h2", { text: section.title }),
+            ...renderGuideBlocks(section.blocks),
+          ])
+        )
+      ),
+    ]);
+  }
+
+  function isSandboxDocsHash(id, guide) {
+    if (!id) return false;
+    if (id === "docs") return true;
+    return ((guide && guide.sections) || []).some((section) => section.id === id);
+  }
+
+  function renderSandbox(data, guide) {
+    if (window.__ngSandboxCtl) window.__ngSandboxCtl.abort();
+    const ctl = new AbortController();
+    window.__ngSandboxCtl = ctl;
+    const main = document.getElementById("main");
+    const hunter = el("div", { class: "hunter-list", "data-testid": "hunter-list" });
+    const scoreNum = el("span", { class: "hunter-score-num" });
+    const scoreEl = el("p", {
+      class: "hunter-score",
+      "data-testid": "hunter-score",
+      "aria-live": "polite",
+    }, [
+      el("span", { class: "hunter-score-label", text: data.score }),
+      scoreNum,
+    ]);
+    const fill = el("span", { class: "hunter-fill" });
+    const hint = el("details", {
+      class: "hunter-hint",
+      "data-testid": "hunter-hint",
+    }, [
+      el("summary", {
+        text: data.hintsToggle || (chrome.lang === "uk" ? "Підказка: які баги є" : "Hint: which bugs are planted"),
+      }),
+      hunter,
+    ]);
+    const meter = el("div", {
+      class: "hunter-meter",
+      "data-testid": "hunter-meter",
+    }, [
+      scoreEl,
+      el("div", { class: "hunter-track", "aria-hidden": "true" }, [fill]),
+      hint,
+    ]);
+
+    const paintHunter = () => {
+      const found = new Set(readFound());
+      const total = (data.bugs || []).length;
+      scoreNum.textContent = found.size + " / " + total;
+      fill.style.width = total ? (100 * found.size) / total + "%" : "0%";
+      hunter.replaceChildren();
+      (data.bugs || []).forEach((bug) => {
+        const isFound = found.has(bug.id);
+        hunter.append(
+          el("article", {
+            class: "hunter-card" + (isFound ? " is-found" : ""),
+            "data-bug": bug.id,
+            "data-testid": "hunter-bug",
+          }, [
+            bug.area ? el("p", { class: "hunter-area", text: bug.area }) : null,
+            el("h3", { text: bug.title }),
+            el("p", { text: bug.hint }),
+            isFound
+              ? el("p", { class: "hunter-found", text: data.found })
+              : el("button", {
+                  class: "btn btn-ghost",
+                  type: "button",
+                  text: data.mark,
+                  onClick: () => {
+                    const next = readFound();
+                    if (!next.includes(bug.id)) next.push(bug.id);
+                    writeFound(next);
+                    paintHunter();
+                  },
+                }),
+          ])
+        );
+      });
+    };
+
+    window.addEventListener(
+      "sut-bug",
+      (event) => {
+        const id = event.detail;
+        const next = readFound();
+        if (id && !next.includes(id)) {
+          next.push(id);
+          writeFound(next);
+          paintHunter();
+        }
+      },
+      { signal: ctl.signal }
+    );
+
+    const mount = el("div", { id: "access-app", class: "access-app", "data-testid": "access-app" });
+    const viewBtn = el("button", {
+      class: "btn btn-primary",
+      type: "button",
+      "data-testid": "sandbox-docs-btn",
+    });
+    const consolePanel = el("div", {
+      class: "sandbox-layout",
+      "data-testid": "sandbox-console",
+    }, [mount]);
+    const docsPanel = guide
+      ? buildGuideLayout(guide)
+      : el("p", { class: "lede", text: "Docs failed to load." });
+    docsPanel.hidden = true;
+
+    const setView = (next) => {
+      if (next === "docs") {
+        if (!isSandboxDocsHash(hashId(), guide)) location.hash = "docs";
+        else applyView(true);
+        return;
+      }
+      if (location.hash) history.pushState(null, "", location.pathname + location.search);
+      applyView(false);
+    };
+
+    const applyView = (docsOn) => {
+      viewBtn.textContent = docsOn
+        ? (data.viewConsole || (chrome.lang === "uk" ? "Консоль" : "Console"))
+        : (data.viewDocs || (chrome.lang === "uk" ? "Доку" : "Docs"));
+      consolePanel.hidden = docsOn;
+      docsPanel.hidden = !docsOn;
+      if (docsOn) {
+        const id = hashId();
+        const target = id && id !== "docs" ? document.getElementById(id) : docsPanel;
+        if (target && target.scrollIntoView) target.scrollIntoView({ block: "start" });
+      }
+    };
+
+    viewBtn.addEventListener("click", () => {
+      setView(isSandboxDocsHash(hashId(), guide) ? "console" : "docs");
+    });
+    window.addEventListener("hashchange", () => applyView(isSandboxDocsHash(hashId(), guide)), { signal: ctl.signal });
+
+    main.replaceChildren(
+      el("header", { class: "hero" }, [
+        el("p", { class: "badge", text: data.badge }),
+        el("h1", { text: data.title }),
+        el("p", { class: "pitch", text: data.intro }),
+        el("p", { class: "lede", text: data.hint }),
+        meter,
+        el("div", { class: "hero-actions" }, [
+          viewBtn,
+          el("button", {
+            class: "btn btn-ghost",
+            type: "button",
+            "data-testid": "sandbox-reset",
+            text: data.reset,
+            onClick: () => {
+              if (window.resetAccessDesk) window.resetAccessDesk();
+              localStorage.removeItem(FOUND_KEY);
+              location.reload();
+            },
+          }),
+        ]),
+      ]),
+      consolePanel,
+      docsPanel
+    );
+    paintHunter();
+    window.__ngDocs = "#docs";
+    if (typeof window.bootAccessDesk === "function") window.bootAccessDesk(mount);
+    applyView(isSandboxDocsHash(hashId(), guide));
+  }
+
+  function renderLearn(data) {
+    const items = data.items || [];
+    let index = 0;
+    let correct = 0;
+    const main = document.getElementById("main");
+    const stage = el("div", { class: "quiz-stage", "data-testid": "quiz-stage" });
+
+    const paint = () => {
+      stage.replaceChildren();
+      if (index >= items.length) {
+        stage.append(
+          el("p", { class: "fit-score", "data-testid": "quiz-score" }, [
+            el("span", { class: "fit-score-num", text: correct + " / " + items.length }),
+            el("span", { text: data.score }),
+          ]),
+          el("button", {
+            class: "btn btn-primary",
+            type: "button",
+            text: data.again,
+            onClick: () => {
+              index = 0;
+              correct = 0;
+              paint();
+            },
+          })
+        );
+        return;
+      }
+      const item = items[index];
+      const why = el("p", { class: "quiz-why", hidden: true, "data-testid": "quiz-why" });
+      const next = el("button", {
+        class: "btn btn-primary",
+        type: "button",
+        hidden: true,
+        text: index === items.length - 1 ? data.score : data.next,
+        onClick: () => {
+          if (!locked) return;
+          index += 1;
+          paint();
+        },
+      });
+      const opts = el("div", { class: "quiz-options" });
+      let locked = false;
+      item.options.forEach((label, i) => {
+        opts.append(
+          el("button", {
+            class: "quiz-option",
+            type: "button",
+            "data-testid": "quiz-option",
+            text: label,
+            onClick: (event) => {
+              if (locked) return;
+              locked = true;
+              const ok = i === item.answer;
+              if (ok) correct += 1;
+              event.currentTarget.classList.add(ok ? "is-right" : "is-wrong");
+              opts.children[item.answer].classList.add("is-right");
+              why.hidden = false;
+              why.textContent = (ok ? data.correct : data.wrong) + " " + item.why;
+              next.hidden = false;
+            },
+          })
+        );
+      });
+      stage.append(
+        el("p", { class: "quiz-progress", text: index + 1 + " / " + items.length }),
+        el("h2", { text: item.q }),
+        opts,
+        why,
+        next
+      );
+    };
+
+    main.replaceChildren(
+      el("header", { class: "hero" }, [
+        el("p", { class: "badge", text: data.badge }),
+        el("h1", { text: data.title }),
+        el("p", { class: "pitch", text: data.intro }),
+        el("div", { class: "hero-actions" }, [
+          el("a", { class: "btn btn-ghost", href: notesHref(), text: data.notesCta }),
+          el("a", { class: "btn btn-ghost", href: qaHref(), text: data.qaCta }),
+        ]),
+      ]),
+      stage
+    );
+    paint();
+  }
+
+  function renderFooter(text, site) {
+    const foot = document.getElementById("site-footer");
+    const passing = !site || site.ci === "passing";
+    foot.replaceChildren(
+      el("div", { class: "ci-footer", "data-testid": "ci-footer" }, [
+        el("span", { class: "ci-ver", text: "v" + ((site && site.version) || "dev") }),
+        el("span", { class: "ci-sep", text: "·" }),
+        el("span", {
+          class: "ci-branch",
+          text: ((site && site.branch) || "main") + "@" + ((site && site.commit) || "local"),
+        }),
+        el("span", { class: "ci-sep", text: "·" }),
+        el("span", {
+          class: "ci-status" + (passing ? " is-pass" : ""),
+          text: (site && site.ci) || "passing",
+        }),
+        el("span", { class: "ci-check", "aria-hidden": "true", text: passing ? "✓" : "×" }),
+      ]),
+      el("p", { class: "ci-copy", text: text })
+    );
   }
 
   async function init() {
@@ -1334,11 +1917,16 @@
     applyTheme(detectTheme());
 
     try {
-      const [site, data] = await Promise.all([
-        loadJson("content/site.json"),
-        loadJson(contentFile(lang)),
-      ]);
-      chrome = { data, site, lang };
+      const loaders = [loadJson("content/site.json"), loadJson(contentFile(lang))];
+      if (page === "home") loaders.push(loadJson("content/fit.json"));
+      if (page === "sandbox") loaders.push(loadJson("content/sandbox-docs-" + lang + ".json"));
+      const loaded = await Promise.all(loaders);
+      const site = loaded[0];
+      const data = loaded[1];
+      const extra = loaded[2];
+      const fitCatalog = page === "home" ? extra || { items: [] } : { items: [] };
+      const guide = page === "sandbox" ? extra : null;
+      chrome = { data, site, lang, guide };
 
       document.title = data.metaTitle;
       const desc = document.querySelector('meta[name="description"]');
@@ -1348,12 +1936,15 @@
       bindGlobalKeys();
       if (page === "notes") renderNotes(data);
       else if (page === "qa") renderQa(data);
+      else if (page === "sandbox") renderSandbox(data, guide);
+      else if (page === "sandbox-docs") location.replace(base + "sandbox/#docs");
+      else if (page === "learn") renderLearn(data);
       else {
-        renderHome(data, site);
+        renderHome(data, site, fitCatalog);
         scrollToHash();
         watchCvSections();
       }
-      renderFooter(data.footer);
+      renderFooter(data.footer, site);
     } catch (error) {
       document.getElementById("main").replaceChildren(
         el("div", { class: "error" }, [

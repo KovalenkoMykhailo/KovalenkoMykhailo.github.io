@@ -12,6 +12,9 @@
     "pages": "Сторінки",
     "download": "Завантажити CV",
     "print": "Друк / PDF",
+    "challenge": "QA-челендж",
+    "learn": "Learn",
+    "fit": "JD fit",
     "menu": "Меню",
     "command": "Пошук",
     "commandHint": "Перейти на сторінку, секцію або проєкт",
@@ -21,8 +24,10 @@
   "hero": {
     "name": "Михайло Коваленко",
     "role": "Senior General QA Engineer",
+    "badge": "Open to work · Remote",
     "location": "Remote · Relocate · Дніпро",
-    "pitch": "Тестую UI та API, збираю автоматизацію на TypeScript і Playwright і запускаю її в Jenkins. Пишу тест-документацію і перевіряю дані SQL."
+    "pitch": "Тестую UI та API, збираю автоматизацію на TypeScript і Playwright і запускаю її в Jenkins. Пишу тест-документацію і перевіряю дані SQL.",
+    "challengeCta": "Спробуй себе як QA"
   },
   "terminal": {
     "title": "MykhailoKovalenko — zsh",
@@ -44,8 +49,9 @@
     "title": "Про мене",
     "paragraphs": [
       "Працюю як Senior General QA Engineer: функціональне тестування, UI, API, автоматизація і тест-документація.",
-      "Поточний стек — TypeScript і Playwright для UI, API та E2E. Автоматизацію починав з Java, Selenium і Maven.",
+      "Поточний стек — TypeScript і Playwright для UI, API та E2E. Автоматизацію починав з Java, Selenium, Maven і REST Assured.",
       "Є досвід у FinTech на B2B payment platform, команда Access & Identity: доступ, акаунти, ролі, операції корпоративних клієнтів.",
+      "На останньому проєкті був першим QA: зібрав процес, документацію і регресію, далі автоматизацію і CI/CD.",
       "Важливий фреймворк, якому команда вірить у CI, менше flaky-тестів і коротша ручна регресія."
     ]
   },
@@ -55,27 +61,47 @@
     "notesLink": "До конспекту",
     "qaLink": "До Q&A"
   },
+  "wins": {
+    "title": "Ключові результати",
+    "items": [
+      {
+        "tag": "regression",
+        "text": "Скоротив ручну регресію на 70% сьютом Playwright + TypeScript у Jenkins."
+      },
+      {
+        "tag": "coverage",
+        "text": "300+ UI/API/E2E тестів і близько 90% автоматизації ключових сервісів (FRACTAL)."
+      },
+      {
+        "tag": "process",
+        "text": "Перший QA на проєкті: процес, документація, регресія, далі фреймворк і CI/CD."
+      }
+    ]
+  },
   "experience": {
     "title": "Досвід",
     "jobs": [
       {
         "company": "FRACTAL",
         "role": "Senior General QA Engineer",
+        "domain": "SaaS",
         "period": "квітень 2025 – травень 2026",
         "place": "",
         "points": [
+          "Перший QA на проєкті: зібрав процес, документацію і регресію, далі UI+API автоматизацію і CI/CD.",
           "Спроєктував і підтримував масштабований фреймворк автоматизації на TypeScript і Playwright.",
           "Написав 300+ автотестів: UI, API, E2E. Покриття автоматизацією ключових сервісів — 90%.",
           "Скоротив час ручної регресії на 70% за рахунок автоматизації.",
           "Вбудував тести в CI/CD на Jenkins. Звіти — Allure.",
           "Веду тестові сценарії, тест-кейси та регресійні набори. API перевіряю в Postman, дані — SQL.",
-          "Працював з backend, frontend і QA. Тестував account management: ролі, права, контроль доступу."
+          "Працював з backend, frontend і QA. Тестував account management: ролі, права, контроль доступу. Shift-left по вимогах."
         ],
         "stack": "TypeScript, Playwright, Jenkins, Postman, SQL, Allure"
       },
       {
         "company": "Clear Junction",
         "role": "Access & Identity · B2B payment platform",
+        "domain": "FinTech",
         "period": "лютий 2022 – квітень 2025",
         "place": "",
         "points": [
@@ -91,15 +117,16 @@
       {
         "company": "RIA.com",
         "role": "QA Engineer",
+        "domain": "Marketplace",
         "period": "грудень 2020 – лютий 2022",
         "place": "",
         "points": [
           "Функціональне, регресійне, інтеграційне та UI-тестування.",
-          "Автотести на Java, Selenium і Maven.",
+          "Автотести на Java, Selenium, REST Assured і Maven.",
           "Перевірка даних у БД через SQL.",
           "Тест-документація: тест-кейси, чеклісти, баг-репорти."
         ],
-        "stack": "Java, Selenium, Maven, Allure, Jenkins, SQL"
+        "stack": "Java, Selenium, REST Assured, Maven, Allure, Jenkins, SQL"
       }
     ]
   },
@@ -108,19 +135,31 @@
     "groups": [
       {
         "name": "Автоматизація",
-        "items": ["TypeScript (Playwright)", "Java (Selenium)", "UI testing", "API testing", "E2E testing", "Page Object Model (POM)"]
+        "items": ["TypeScript (Playwright)", "Java (Selenium, REST Assured)", "UI testing", "API testing", "E2E testing", "Page Object Model (POM)"]
+      },
+      {
+        "name": "API",
+        "items": ["Postman", "Newman", "Playwright APIRequest", "HTTP", "auth / tokens / cookies"]
       },
       {
         "name": "Бази даних",
         "items": ["PostgreSQL", "NoSQL", "SQL"]
       },
       {
-        "name": "Інструменти",
-        "items": ["Postman", "Chrome DevTools", "Charles Proxy", "Sentry", "Allure"]
+        "name": "CI / CD",
+        "items": ["Jenkins", "GitLab CI", "GitHub Actions", "Git"]
       },
       {
-        "name": "CI",
-        "items": ["Jenkins", "Git"]
+        "name": "Моніторинг",
+        "items": ["Grafana", "Prometheus", "Kibana", "Datadog", "логи"]
+      },
+      {
+        "name": "Інструменти",
+        "items": ["Chrome DevTools", "Charles Proxy", "Sentry", "Allure"]
+      },
+      {
+        "name": "QA-методи",
+        "items": ["SDLC / STLC", "Agile", "functional / regression", "shift-left", "EP / BVA"]
       },
       {
         "name": "Документація",
@@ -211,6 +250,22 @@
         "text": "Рання практика JS. Тримую як слід, з чого починав, не як фреймворк."
       }
     ]
+  },
+  "fit": {
+    "title": "Job-fit checker",
+    "lead": "Вставте JD. Сторінка матчить ключові слова з реального CV — комерція, попередній стек або немає в комерції. Без накрутки.",
+    "placeholder": "Вставте опис вакансії…",
+    "analyze": "Перевірити fit",
+    "sample": "Приклад JD",
+    "upload": "Завантажити .txt",
+    "waiting": "Чекаємо на JD.",
+    "hint": "Працює в браузері. JD нікуди не відправляється.",
+    "strong": "Комерція",
+    "previous": "Попередній стек",
+    "none": "Немає в комерції",
+    "score": "Fit",
+    "empty": "У цьому JD немає відомих ключових слів.",
+    "sampleJd": "Шукаємо Senior QA Automation Engineer. TypeScript і Playwright для UI та API. Page Object Model, fixtures, storageState. Jenkins CI, Allure. SQL і Postman. FinTech — плюс. Appium і GraphQL бажані. k6 performance — плюс."
   },
   "contact": {
     "title": "Контакти",

@@ -1,0 +1,328 @@
+{
+  "metaTitle": "Northgate Console docs — Mykhailo Kovalenko",
+  "metaDescription": "TEST product spec for Northgate Console: auth, accounts, transfers, Access, audit, REST API, seed data, locators.",
+  "nav": {
+    "home": "CV",
+    "notes": "Notes",
+    "qa": "Q&A",
+    "experience": "Experience",
+    "skills": "Skills",
+    "contacts": "Contact",
+    "onPage": "On this page",
+    "pages": "Pages",
+    "download": "Download CV",
+    "print": "Print / Save PDF",
+    "challenge": "QA challenge",
+    "learn": "Learn",
+    "fit": "JD fit",
+    "consoleDocs": "Console docs",
+    "menu": "Menu",
+    "command": "Search",
+    "commandHint": "Jump to a page or section",
+    "commandEmpty": "Nothing found.",
+    "commandK": "⌘K"
+  },
+  "title": "Northgate Console — TEST docs",
+  "badge": "Fake B2B admin · not a live bank",
+  "intro": "This is the product spec for the QA challenge console. If the UI or the API disagrees with this page, treat it as a defect. Same area I tested at work: Access & Identity, account structures, roles. Not payment-provider rails. Product UI is English on purpose.",
+  "openConsole": "Open the console",
+  "toc": "On this page",
+  "footer": "Mykhailo Kovalenko · Senior General QA Engineer",
+  "sections": [
+    {
+      "id": "overview",
+      "title": "1. Overview",
+      "blocks": [
+        { "type": "p", "text": "Northgate Console is a fake TEST back-office. It is not a live bank. Transfers are internal book-to-book between accounts in this workspace. There are no payment-provider flows." },
+        { "type": "h3", "text": "What you can do" },
+        { "type": "ul", "items": [
+          "Sign in and sign out.",
+          "Filter, sort, paginate, create, edit, delete, open, freeze/unfreeze, and export corporate accounts.",
+          "Create internal transfers and filter the transfer list.",
+          "Invite members and read roles.",
+          "Read an audit log of login, freeze, create, update, delete, transfer, invite.",
+          "Inspect live REST calls in the API tab."
+        ]},
+        { "type": "note", "text": "Compare three sources: this spec, the table in the UI, and the Network / API tab. They must match." }
+      ]
+    },
+    {
+      "id": "environment",
+      "title": "2. Environment",
+      "blocks": [
+        { "type": "table", "headers": ["Item", "Value"], "rows": [
+          ["Badge", "TEST"],
+          ["Base URL", "/sandbox/"],
+          ["API base", "/sandbox/api/v1/"],
+          ["Auth header", "Authorization: Bearer <token>"],
+          ["Demo token", "ng-demo-token"],
+          ["Data store", "browser localStorage"],
+          ["API via", "Service Worker at /sandbox/sw.js"],
+          ["CSV file", "northgate-accounts.csv"]
+        ]},
+        { "type": "p", "text": "The REST layer is a Service Worker. Chrome DevTools → Network → Fetch/XHR shows the calls (often marked from ServiceWorker). State still lives in localStorage. First paint may show “Loading console…” until the worker is ready. Playwright E2E can waitForResponse. Playwright request (Node HTTP) does not hit this fake API." },
+        { "type": "h3", "text": "localStorage keys" },
+        { "type": "table", "headers": ["Key", "Content"], "rows": [
+          ["mk-ng-token", "Session token after login"],
+          ["mk-ng-accounts", "Account rows"],
+          ["mk-ng-transfers", "Transfer rows"],
+          ["mk-ng-members", "Access members"],
+          ["mk-ng-audit", "Audit events"],
+          ["mk-ng-open", "Cached Open-accounts KPI"],
+          ["mk-access-found", "Hunter score on the challenge page"]
+        ]},
+        { "type": "p", "text": "Reset app + score on the challenge page clears these keys and reloads seed data." }
+      ]
+    },
+    {
+      "id": "auth",
+      "title": "3. Auth",
+      "blocks": [
+        { "type": "h3", "text": "Demo user" },
+        { "type": "table", "headers": ["Field", "Value"], "rows": [
+          ["Email", "ada.chen@northgate.test"],
+          ["Password", "Access123!"],
+          ["Name", "Ada Chen"],
+          ["Role", "Admin"]
+        ]},
+        { "type": "p", "text": "Only this user can sign in. The login form is pre-filled with the demo email. Session line after login: Ada Chen · Admin. While Sign in is in flight, login-submit is disabled." },
+        { "type": "h3", "text": "POST /sandbox/api/v1/auth/login" },
+        { "type": "code", "text": "POST /sandbox/api/v1/auth/login\nContent-Type: application/json\n\n{ \"email\": \"ada.chen@northgate.test\", \"password\": \"Access123!\" }" },
+        { "type": "p", "text": "Success: 200. Body has token and user. The token is stored and sent on later calls as Bearer. A LOGIN audit row is written with result OK." },
+        { "type": "code", "text": "200\n{\n  \"token\": \"ng-demo-token\",\n  \"user\": {\n    \"email\": \"ada.chen@northgate.test\",\n    \"name\": \"Ada Chen\",\n    \"role\": \"Admin\"\n  }\n}" },
+        { "type": "p", "text": "Wrong email or password: 401 Unauthorized. This is not 403. 403 means authenticated but not allowed. A failed login is unauthenticated." },
+        { "type": "h3", "text": "POST /sandbox/api/v1/auth/logout" },
+        { "type": "p", "text": "Success: 204 and empty body. The token must be removed. Reload after logout must show the login form, not the console. GET /me without a token must return 401." },
+        { "type": "h3", "text": "GET /sandbox/api/v1/me" },
+        { "type": "p", "text": "Requires Bearer token. 200 returns the demo user. Missing or wrong token: 401 on every route except login." },
+        { "type": "h3", "text": "UI locators" },
+        { "type": "table", "headers": ["testid", "Control"], "rows": [
+          ["login-form", "Sign-in form"],
+          ["login-email", "Email"],
+          ["login-password", "Password"],
+          ["login-submit", "Sign in"],
+          ["login-error", "Error text after a failed login"],
+          ["logout", "Log out"],
+          ["back-login", "Back to login after sign-out"],
+          ["session-user", "Ada Chen · Admin"],
+          ["env-badge", "TEST"],
+          ["console-shell", "Logged-in shell"],
+          ["tab-accounts / tab-transfers / tab-access / tab-audit / tab-api", "Tabs"]
+        ]}
+      ]
+    },
+    {
+      "id": "accounts",
+      "title": "4. Accounts",
+      "blocks": [
+        { "type": "p", "text": "Tab Accounts. Seed has 8 rows. UI page size is 5. API default pageSize is 20 if the query omits it. Accounts are full CRUD. Freeze/Unfreeze is a separate PATCH, not the Edit form." },
+        { "type": "table", "headers": ["Op", "UI", "HTTP", "Persist"], "rows": [
+          ["Create", "Add account", "POST /sandbox/api/v1/accounts", "Yes. New row on page 1. Audit CREATE / OK"],
+          ["Read", "Table, pager, drawer", "GET /accounts and GET /accounts/:id", "—"],
+          ["Update", "Edit / Edit account", "PUT /sandbox/api/v1/accounts/:id", "Yes. Next GET and reload. Audit UPDATE / OK"],
+          ["Delete", "Delete", "DELETE /sandbox/api/v1/accounts/:id", "Yes, unless 409 pending transfers. Audit DELETE / OK"],
+          ["Freeze", "Freeze / Unfreeze", "PATCH /sandbox/api/v1/accounts/:id", "Status change must persist. Not PUT"]
+        ]},
+        { "type": "h3", "text": "Seed accounts (API values)" },
+        { "type": "table", "headers": ["id", "Client", "IBAN", "Type", "CCY", "Balance", "Status"], "rows": [
+          ["acc-1", "Northgate Ops", "NG00 1000 0000 0001", "Operating", "EUR", "125000.50", "Active"],
+          ["acc-2", "Northgate Ops", "NG00 1000 0000 0002", "Operating", "USD", "8800.00", "Active"],
+          ["acc-3", "Ada Chen", "NG00 1000 0000 0003", "Current", "EUR", "4200.50", "Active"],
+          ["acc-4", "Bohdan Koval", "NG00 1000 0000 0004", "Current", "EUR", "150.00", "Frozen"],
+          ["acc-5", "Clara West", "NG00 1000 0000 0005", "Current", "GBP", "0.00", "Active"],
+          ["acc-6", "Vendor Holdings", "NG00 1000 0000 0006", "Escrow", "EUR", "0.00", "Closed"],
+          ["acc-7", "Demo Viewer", "NG00 1000 0000 0007", "Current", "USD", "99.99", "Active"],
+          ["acc-8", "Baltic Payroll", "NG00 1000 0000 0008", "Payroll", "EUR", "50200.00", "Active"]
+        ]},
+        { "type": "h3", "text": "KPIs — GET /stats" },
+        { "type": "p", "text": "Open accounts must equal the number of Active rows (6 on seed). Frozen = 1. Closed = 1. Pending transfers = count of transfers with status Pending (2 on seed)." },
+        { "type": "code", "text": "GET /sandbox/api/v1/stats\n200 { \"open\": 6, \"frozen\": 1, \"closed\": 1, \"pending\": 2 }" },
+        { "type": "h3", "text": "Filters — GET /accounts" },
+        { "type": "p", "text": "Apply filters sends query params. Clear resets them and page to 1. Empty list shows “No accounts match these filters.”" },
+        { "type": "table", "headers": ["Query", "Rule"], "rows": [
+          ["q", "Case-insensitive substring on holder or IBAN"],
+          ["status", "All | Active | Frozen | Closed. Active must hide Frozen and Closed"],
+          ["currency", "All | EUR | USD | GBP. Must keep only that currency"],
+          ["minBalance", "Inclusive: balance >= min"],
+          ["maxBalance", "Inclusive: balance <= max. A row with balance 150 must stay when max=150"],
+          ["sort=holder", "Sort by client name (holder), not by IBAN"],
+          ["dir", "asc (default) or desc"],
+          ["page", "1-based. UI starts at 1"],
+          ["pageSize", "UI uses 5. API allows 1–100, default 20"]
+        ]},
+        { "type": "code", "text": "GET /sandbox/api/v1/accounts?q=&status=All&currency=All&minBalance=&maxBalance=&page=1&pageSize=5\n200 { \"items\": [ ... ], \"total\": 8, \"page\": 1, \"pageSize\": 5 }" },
+        { "type": "h3", "text": "Table, pager, CSV" },
+        { "type": "ul", "items": [
+          "Columns: Client, IBAN, Type, CCY, Balance, Status, Actions (Edit, Freeze/Unfreeze, Delete).",
+          "Balance in the table must match GET /accounts and GET /accounts/:id (Ada Chen is 4200.50, not 4200).",
+          "Client header (sort-holder) sorts by holder. Activate with click, Enter, or Space.",
+          "Previous / Next. Page 1 disables Previous. Last page disables Next.",
+          "Export CSV uses current filters, page=1, pageSize=100. File northgate-accounts.csv. Columns: id,holder,iban,type,currency,balance,status."
+        ]},
+        { "type": "h3", "text": "Create — POST /accounts" },
+        { "type": "p", "text": "Form Add account. New row is inserted at the top of the list (page 1). Types: Current, Operating, Payroll, Escrow. Currencies: EUR, USD, GBP. Status: Active, Frozen, Closed. Balance default 0. While the POST is in flight, account-create-submit is disabled." },
+        { "type": "code", "text": "POST /sandbox/api/v1/accounts\n{ \"holder\": \"Test Client\", \"iban\": \"NG00 1000 0000 0099\", \"type\": \"Current\", \"currency\": \"EUR\", \"balance\": 10, \"status\": \"Active\" }\n\n201 { \"id\": \"acc-…\", \"holder\": \"Test Client\", \"iban\": \"NG00 1000 0000 0099\", \"type\": \"Current\", \"currency\": \"EUR\", \"balance\": 10, \"status\": \"Active\" }" },
+        { "type": "table", "headers": ["Case", "HTTP", "Body"], "rows": [
+          ["Valid", "201", "Account object. Audit CREATE / OK"],
+          ["Missing holder or IBAN", "400", "{ \"error\": \"Holder and IBAN are required.\" }"],
+          ["Bad currency, type, or status", "400", "{ \"error\": \"Invalid currency|type|status\" }"],
+          ["IBAN already exists (spaces ignored, case-insensitive)", "409", "{ \"error\": \"DUPLICATE_IBAN\" }"]
+        ]},
+        { "type": "h3", "text": "Update — PUT /accounts/:id" },
+        { "type": "p", "text": "Every row has Edit. The account drawer also has Edit account. The form is a modal (role=dialog, aria-modal) and is prefilled. Save sends PUT with holder, iban, type, currency, balance, status. The change must persist: next GET and reload show the new values. Cancel, overlay click, and Escape must not call the API. After close, focus returns to the control that opened the dialog. Account id does not change. Same validation as create. Duplicate IBAN is 409 unless it is this row’s own IBAN. While PUT is in flight, account-edit-submit is disabled." },
+        { "type": "code", "text": "PUT /sandbox/api/v1/accounts/acc-7\n{ \"holder\": \"Demo Viewer\", \"iban\": \"NG00 1000 0000 0007\", \"type\": \"Current\", \"currency\": \"USD\", \"balance\": 150, \"status\": \"Active\" }\n\n200 { \"id\": \"acc-7\", \"holder\": \"Demo Viewer\", \"iban\": \"NG00 1000 0000 0007\", \"type\": \"Current\", \"currency\": \"USD\", \"balance\": 150, \"status\": \"Active\" }" },
+        { "type": "table", "headers": ["Case", "HTTP", "Body"], "rows": [
+          ["Valid", "200", "Updated account. Audit UPDATE / OK"],
+          ["Unknown id", "404", "{ \"error\": \"Not found\" }"],
+          ["Missing holder or IBAN", "400", "{ \"error\": \"Holder and IBAN are required.\" }"],
+          ["Bad currency, type, or status", "400", "{ \"error\": \"Invalid currency|type|status\" }"],
+          ["IBAN used by another account", "409", "{ \"error\": \"DUPLICATE_IBAN\" }"]
+        ]},
+        { "type": "h3", "text": "Delete — DELETE /accounts/:id" },
+        { "type": "p", "text": "Every row has Delete. Confirm modal first (role=dialog, aria-modal). Only one dialog at a time. Cancel, overlay click, and Escape must not call the API. After close, focus returns to the Delete button. The delete must persist: next GET list and reload omit the row. If this account has a Pending transfer (from or to), API returns 409 ACCOUNT_HAS_PENDING_TRANSFERS and the row stays. Unknown id: 404. On seed, acc-1 and acc-5 have pending transfers, so delete must fail. acc-6 Closed has none — delete must succeed." },
+        { "type": "code", "text": "DELETE /sandbox/api/v1/accounts/acc-6\n204 empty body\n\nDELETE /sandbox/api/v1/accounts/acc-1\n409 { \"error\": \"ACCOUNT_HAS_PENDING_TRANSFERS\" }" },
+        { "type": "h3", "text": "Account drawer" },
+        { "type": "p", "text": "Click a row. GET /accounts/:id. Unknown id: 404. Drawer shows IBAN, type, currency, Balance (API), status, account id. Copy IBAN writes the IBAN to the clipboard. Edit account opens the same PUT form as the row Edit button. Related transfers are items where from or to equals this id. Close clears the selection." },
+        { "type": "h3", "text": "Freeze / Unfreeze — PATCH /accounts/:id" },
+        { "type": "p", "text": "Closed rows have no Freeze. Active shows Freeze. Frozen shows Unfreeze. Confirm modal first. Confirm sends PATCH { \"status\": \"Frozen\" } or { \"status\": \"Active\" } — not PUT. Edit/PUT is a different contract and must persist field changes. After PATCH, the new status must persist: next GET and reload show it. Toast: Request accepted: Frozen|Active. Cancel, overlay click, and Escape must not call the API. After close, focus returns to Freeze/Unfreeze." },
+        { "type": "code", "text": "PATCH /sandbox/api/v1/accounts/acc-1\n{ \"status\": \"Frozen\" }\n\n200 { \"id\": \"acc-1\", \"status\": \"Frozen\", ... }\nGET /sandbox/api/v1/accounts/acc-1 → status Frozen" },
+        { "type": "h3", "text": "UI locators" },
+        { "type": "table", "headers": ["testid", "Control"], "rows": [
+          ["kpi-open / kpi-frozen / kpi-pending", "KPI cards"],
+          ["account-filters", "Filter form"],
+          ["account-search", "Search"],
+          ["account-status / account-currency", "Selects"],
+          ["account-min / account-max", "Balance bounds"],
+          ["account-apply / account-clear", "Apply / Clear"],
+          ["account-table / account-row", "Table / row"],
+          ["account-balance / iban", "Cells"],
+          ["sort-holder", "Client column (click / Enter / Space)"],
+          ["account-total / account-pager / account-empty", "Meta / pager / empty"],
+          ["account-prev / account-next / account-export", "Pager + CSV"],
+          ["account-create / account-create-submit / account-create-error", "Add account form"],
+          ["account-holder / account-iban / account-type / account-ccy", "Create fields"],
+          ["account-balance-in / account-new-status", "Create balance and status"],
+          ["account-edit", "Edit row button"],
+          ["account-edit-modal / account-edit-form / account-edit-submit / account-edit-cancel / account-edit-error", "Edit dialog"],
+          ["account-edit-holder / account-edit-iban / account-edit-type / account-edit-ccy / account-edit-balance / account-edit-status", "Edit fields"],
+          ["account-freeze", "Freeze or Unfreeze"],
+          ["account-delete", "Delete row"],
+          ["confirm-modal / confirm-ok / confirm-cancel", "Confirm dialog"],
+          ["account-drawer / drawer-close / copy-iban / account-drawer-edit", "Drawer"]
+        ]}
+      ]
+    },
+    {
+      "id": "transfers",
+      "title": "5. Transfers",
+      "blocks": [
+        { "type": "p", "text": "Internal book-to-book only. Same currency. From and To dropdowns list Active accounts only. A new transfer gets status Pending and a ref like NG-TX-######. While Create transfer is in flight, transfer-submit is disabled." },
+        { "type": "h3", "text": "Seed transfers" },
+        { "type": "table", "headers": ["ref", "from", "to", "amount", "ccy", "status", "date"], "rows": [
+          ["NG-TX-1001", "acc-1", "acc-8", "2500", "EUR", "Settled", "2026-08-28"],
+          ["NG-TX-1002", "acc-1", "acc-3", "120", "EUR", "Pending", "2026-08-30"],
+          ["NG-TX-1003", "acc-2", "acc-7", "40", "USD", "Failed", "2026-08-29"],
+          ["NG-TX-1004", "acc-8", "acc-4", "15", "EUR", "Settled", "2026-08-20"],
+          ["NG-TX-1005", "acc-1", "acc-5", "300", "EUR", "Pending", "2026-08-31"]
+        ]},
+        { "type": "h3", "text": "POST /sandbox/api/v1/transfers" },
+        { "type": "code", "text": "POST /sandbox/api/v1/transfers\n{ \"from\": \"acc-1\", \"to\": \"acc-8\", \"amount\": 10 }\n\n201 {\n  \"id\": \"tx-…\",\n  \"ref\": \"NG-TX-……\",\n  \"from\": \"acc-1\",\n  \"to\": \"acc-8\",\n  \"amount\": 10,\n  \"currency\": \"EUR\",\n  \"status\": \"Pending\",\n  \"createdAt\": \"YYYY-MM-DD\"\n}" },
+        { "type": "table", "headers": ["Case", "HTTP", "Body"], "rows": [
+          ["Valid, enough funds, same currency", "201", "Transfer object, status Pending. Debit source, credit target. Audit TRANSFER / PENDING"],
+          ["from, to, or amount missing / amount ≤ 0", "400", "{ \"error\": \"Invalid transfer\" }"],
+          ["Different currencies", "409", "{ \"error\": \"CURRENCY_MISMATCH\" }"],
+          ["amount > source balance", "4xx (not 200)", "{ \"error\": \"INSUFFICIENT_FUNDS\" }. Do not move money"]
+        ]},
+        { "type": "h3", "text": "GET /sandbox/api/v1/transfers" },
+        { "type": "table", "headers": ["Query", "Rule"], "rows": [
+          ["status", "All | Pending | Settled | Failed"],
+          ["minAmount", "Inclusive: amount >= min"],
+          ["maxAmount", "Inclusive: amount <= max"]
+        ]},
+        { "type": "p", "text": "UI locators: transfer-form, transfer-from, transfer-to, transfer-amount, transfer-submit, transfer-error, transfer-filters, transfer-status, transfer-min, transfer-max, transfer-apply, transfer-table, transfer-row, transfer-ref." }
+      ]
+    },
+    {
+      "id": "access",
+      "title": "6. Access",
+      "blocks": [
+        { "type": "p", "text": "Tab Access. Members and roles for this TEST workspace. Invite creates status Invited." },
+        { "type": "h3", "text": "Seed members" },
+        { "type": "table", "headers": ["Name", "Email", "Role", "Status"], "rows": [
+          ["Ada Chen", "ada.chen@northgate.test", "Admin", "Active"],
+          ["Bohdan Koval", "bohdan.koval@northgate.test", "Member", "Active"],
+          ["Clara West", "clara.west@northgate.test", "Contractor", "Invited"],
+          ["Demo Viewer", "viewer@northgate.test", "Viewer", "Disabled"]
+        ]},
+        { "type": "p", "text": "Roles you can invite: Viewer, Member, Admin, Contractor. The role in the table must equal the role you sent. Admin must stay Admin." },
+        { "type": "h3", "text": "GET /sandbox/api/v1/members" },
+        { "type": "code", "text": "200 { \"items\": [ { \"id\", \"name\", \"email\", \"role\", \"status\" } ], \"total\": 4 }" },
+        { "type": "h3", "text": "POST /sandbox/api/v1/members" },
+        { "type": "code", "text": "POST /sandbox/api/v1/members\n{ \"name\": \"Test User\", \"email\": \"test.user@northgate.test\", \"role\": \"Admin\" }\n\n201 { \"id\": \"u…\", \"name\": \"Test User\", \"email\": \"test.user@northgate.test\", \"role\": \"Admin\", \"status\": \"Invited\" }" },
+        { "type": "p", "text": "Missing name or email without @ : 400 { \"error\": \"Name and email are required.\" }. Audit INVITE / OK on success. While Invite is in flight, invite-submit is disabled." },
+        { "type": "p", "text": "UI locators: invite-form, invite-name, invite-email, invite-role, invite-submit, member-table, member-row, member-role." }
+      ]
+    },
+    {
+      "id": "audit",
+      "title": "7. Audit",
+      "blocks": [
+        { "type": "p", "text": "GET /sandbox/api/v1/audit returns { items }. Newest first. Max 40 rows stored. Columns: Time, Actor, Action, Target, Result." },
+        { "type": "table", "headers": ["Action", "When", "Target / result"], "rows": [
+          ["LOGIN", "Successful login", "console / OK"],
+          ["CREATE", "Add account", "account id / OK"],
+          ["UPDATE", "Save account edit", "account id / OK"],
+          ["DELETE", "Confirm delete", "account id / OK"],
+          ["FREEZE / UNFREEZE", "Confirm freeze or unfreeze", "account id / ACCEPTED"],
+          ["TRANSFER", "Create transfer", "ref / PENDING, or INSUFFICIENT_FUNDS"],
+          ["INVITE", "Invite member", "email / OK"]
+        ]},
+        { "type": "p", "text": "UI locators: audit-table, audit-row, audit-result." }
+      ]
+    },
+    {
+      "id": "api",
+      "title": "8. REST catalog",
+      "blocks": [
+        { "type": "p", "text": "Call from the console page via fetch. Chrome Network and the API tab both show the live responses. Accounts CRUD: POST create, GET list/detail, PUT edit, DELETE remove. PATCH is freeze/unfreeze only — do not mix it with Edit." },
+        { "type": "table", "headers": ["Method", "Path", "Auth", "Success"], "rows": [
+          ["POST", "/sandbox/api/v1/auth/login", "no", "200 token + user"],
+          ["POST", "/sandbox/api/v1/auth/logout", "yes", "204"],
+          ["GET", "/sandbox/api/v1/me", "yes", "200 user"],
+          ["GET", "/sandbox/api/v1/stats", "yes", "200 open, frozen, closed, pending"],
+          ["GET", "/sandbox/api/v1/audit", "yes", "200 items"],
+          ["GET", "/sandbox/api/v1/accounts", "yes", "200 items, total, page, pageSize"],
+          ["GET", "/sandbox/api/v1/accounts/:id", "yes", "200 account or 404"],
+          ["POST", "/sandbox/api/v1/accounts", "yes", "201 account"],
+          ["PUT", "/sandbox/api/v1/accounts/:id", "yes", "200 updated account"],
+          ["PATCH", "/sandbox/api/v1/accounts/:id", "yes", "200 account with new status"],
+          ["DELETE", "/sandbox/api/v1/accounts/:id", "yes", "204 or 409 pending transfers"],
+          ["GET", "/sandbox/api/v1/transfers", "yes", "200 items, total"],
+          ["POST", "/sandbox/api/v1/transfers", "yes", "201 transfer"],
+          ["GET", "/sandbox/api/v1/members", "yes", "200 items, total"],
+          ["POST", "/sandbox/api/v1/members", "yes", "201 member"],
+          ["*", "unknown path", "—", "404 { \"error\": \"No route\" }"]
+        ]},
+        { "type": "p", "text": "UI locators: api-routes, api-log. The Docs button on the challenge page opens this spec." }
+      ]
+    },
+    {
+      "id": "testing",
+      "title": "9. How to test",
+      "blocks": [
+        { "type": "ul", "items": [
+          "UI: login, filters, add account, edit, delete, pagination, drawer, freeze confirm, transfer, invite, CSV, logout + reload.",
+          "Dialogs: Edit and Confirm are role=dialog, aria-modal. Cancel, overlay click, and Escape must not call the API. Focus returns to the opener. Only one dialog at a time.",
+          "Keyboard: Client header Enter/Space sorts. Submit buttons disable while the request is in flight (no double create/edit/transfer/invite/login).",
+          "API: same routes in the API tab or DevTools Network. Assert status and body against this spec.",
+          "UI vs API: table balance, KPI vs Active count, PUT vs next GET, PATCH freeze vs next GET.",
+          "Negative: wrong password, empty invite, duplicate IBAN on create and on edit, delete with pending transfer, currency mismatch, amount above balance, max balance = 150, search lowercase names.",
+          "Locators: data-testid on every control above. Do not rely on CSS classes.",
+          "Playwright E2E: page.goto('/sandbox/'), getByTestId, waitForResponse.",
+          "Playwright request fixture will not reach this in-browser API. Do not write API tests that expect a real HTTP server here."
+        ]},
+        { "type": "note", "text": "The challenge page lists planted-bug hints. This spec does not name them. Use the spec as the expected result." }
+      ]
+    }
+  ]
+}

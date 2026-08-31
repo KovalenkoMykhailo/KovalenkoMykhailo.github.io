@@ -208,6 +208,13 @@
         "text": "Contacts CRUD and domain search → cart TOTAL. Login once via storageState. Page objects and fixtures. One worker, because the account and cart are shared."
       },
       {
+        "name": "Northgate Console e2e",
+        "kind": "Pet project · Playwright + TypeScript",
+        "filter": "pet",
+        "url": "https://github.com/KovalenkoMykhailo/northgate-console-e2e",
+        "text": "Tests for my own SUT (fake B2B admin). POM, fixtures, storageState, UI plus waitForResponse for in-browser REST. Spec-gap tests are marked test.fail. Clone this repo only — the site is not required to run."
+      },
+      {
         "name": "Playwright examples",
         "kind": "Pet project · Playwright + TypeScript",
         "filter": "pet",

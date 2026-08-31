@@ -208,6 +208,13 @@
         "text": "CRUD контактів і пошук домену → cart TOTAL. Логін один раз через storageState. Page objects і fixtures. Один worker — спільний акаунт і кошик."
       },
       {
+        "name": "Northgate Console e2e",
+        "kind": "Пет-проєкт · Playwright + TypeScript",
+        "filter": "pet",
+        "url": "https://github.com/KovalenkoMykhailo/northgate-console-e2e",
+        "text": "Тести на мій SUT (фейкова B2B-адмінка). POM, fixtures, storageState, UI плюс waitForResponse для in-browser REST. Спека з гепами — test.fail. Клонуй лише це репо — код сайту для запуску не потрібен."
+      },
+      {
         "name": "Playwright examples",
         "kind": "Пет-проєкт · Playwright + TypeScript",
         "filter": "pet",

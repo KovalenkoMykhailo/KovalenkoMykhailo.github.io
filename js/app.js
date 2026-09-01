@@ -1667,7 +1667,7 @@
   function suiteQuery(suite) {
     if (suite === "smoke") return "@smoke";
     if (suite === "planted") return "@planted";
-    if (suite === "regression") return "-@planted";
+    if (suite === "regression") return "@regression";
     return "";
   }
 

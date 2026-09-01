@@ -6,7 +6,6 @@
   "pdf": "cv/Kovalenko_Mykhailo_Senior_General_QA_Engineer.pdf",
   "siteUrl": "https://kovalenkomykhailo.github.io",
   "formEndpoint": "https://formsubmit.co/ajax/kovalenko.mikhail.vadim@gmail.com",
-  "e2eDispatchToken": "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",
   "version": "1.3.0",
   "branch": "main",
   "commit": "93c8941",

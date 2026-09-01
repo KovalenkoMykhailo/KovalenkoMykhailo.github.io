@@ -1676,16 +1676,6 @@
     return raw ? String(raw).trim() : "";
   }
 
-  function e2eIssueUrl(suite) {
-    return (
-      NG_E2E_REPO +
-      "/issues/new?title=" +
-      encodeURIComponent("[e2e] " + e2eSafeSuite(suite)) +
-      "&body=" +
-      encodeURIComponent("Start the selected suite from the Console Tests tab.")
-    );
-  }
-
   function e2eCoolLeft() {
     const at = Number(localStorage.getItem(NG_E2E_COOL_KEY) || 0);
     return Math.max(0, at + NG_E2E_COOL_MS - Date.now());
@@ -1841,9 +1831,7 @@
     const hintEl = el("p", {
       class: "lede",
       "data-testid": "tests-run-hint",
-      text: e2eToken()
-        ? data.testsRunHint
-        : data.testsRunHintIssue || data.testsRunHint,
+      text: e2eToken() ? data.testsRunHint : data.testsRunHintReport || data.testsRunHint,
     });
 
     const setRunState = (text) => {
@@ -1910,6 +1898,11 @@
     if (e2eCoolLeft() > 0) runBtn.disabled = true;
 
     runBtn.addEventListener("click", () => {
+      if (!e2eToken()) {
+        reloadFrame();
+        setRunState(data.testsReportOnly || (uk ? "Звіт оновлено." : "Report reloaded."));
+        return;
+      }
       if (e2eCoolLeft() > 0) {
         setRunState(
           data.testsCooldown ||
@@ -1922,28 +1915,23 @@
       const startedAt = Date.now();
       e2eDispatch(suite)
         .then((result) => {
-          e2eMarkCool();
-          if (result.mode === "issue") {
-            window.open(e2eIssueUrl(suite), "_blank", "noopener");
+          if (result.mode !== "api") {
+            runBtn.disabled = false;
             setRunState(
-              data.testsIssueHint ||
-                (uk
-                  ? "Натисни Create issue — так стартує CI. Потім повернись сюди."
-                  : "Press Create issue to start CI. Then come back here.")
+              data.testsDispatchFail ||
+                (uk ? "Не вдалося стартувати прогін. Звіт нижче — останній CI." : "Could not start a new run. The report below is the last CI.")
             );
-          } else {
-            setRunState(data.testsQueued || (uk ? "У черзі…" : "Queued…"));
+            return;
           }
+          e2eMarkCool();
+          setRunState(data.testsQueued || (uk ? "У черзі…" : "Queued…"));
           watchRun(startedAt);
         })
         .catch(() => {
           runBtn.disabled = false;
-          window.open(e2eIssueUrl(suite), "_blank", "noopener");
           setRunState(
             data.testsDispatchFail ||
-              (uk
-                ? "Звідси не вийшло. Відкрий Create issue і натисни Submit."
-                : "Could not start from here. Submit the prefilled issue.")
+              (uk ? "Не вдалося стартувати прогін. Звіт нижче — останній CI." : "Could not start a new run. The report below is the last CI.")
           );
         });
     });

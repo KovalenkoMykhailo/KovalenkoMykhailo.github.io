@@ -29,7 +29,7 @@
   "viewApp": "Апка",
   "viewConsole": "Апка",
   "viewDocs": "Доку",
-  "viewTests": "Тести",
+  "viewTests": "Автотести",
   "testsTitle": "Автотести",
   "testsIntro": "Playwright + TypeScript проти цієї Консолі. Репо публічне. Останній повний звіт CI нижче (HTML + Allure). Фільтр по тегу.",
   "testsRepo": "Репо тестів",

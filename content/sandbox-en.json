@@ -29,7 +29,7 @@
   "viewApp": "App",
   "viewConsole": "App",
   "viewDocs": "Docs",
-  "viewTests": "Tests",
+  "viewTests": "Autotests",
   "testsTitle": "Automation",
   "testsIntro": "Playwright + TypeScript against this Console. Repo is public. Last full CI report is below (HTML + Allure). Filter by tag.",
   "testsRepo": "Test repo",

@@ -1901,7 +1901,7 @@
     const mount = el("div", { id: "access-app", class: "access-app", "data-testid": "access-app" });
     const docsLabel = data.viewDocs || (chrome.lang === "uk" ? "Доку" : "Docs");
     const appLabel = data.viewApp || data.viewConsole || (chrome.lang === "uk" ? "Апка" : "App");
-    const testsLabel = data.viewTests || (chrome.lang === "uk" ? "Тести" : "Tests");
+    const testsLabel = data.viewTests || (chrome.lang === "uk" ? "Автотести" : "Autotests");
     const docsBtn = el("button", {
       class: "btn btn-ghost",
       type: "button",

@@ -14,7 +14,6 @@
     "print": "Print / Save PDF",
     "challenge": "QA challenge",
     "learn": "Learn",
-    "fit": "JD fit",
     "menu": "Menu",
     "command": "Search",
     "commandHint": "Jump to a page or section",
@@ -81,7 +80,7 @@
       "paragraphs": [
         "Interview prep around Playwright: fixtures, storageState, APIRequest, locators that stay stable, why a test is flaky.",
         "How to explain a framework and Jenkins jobs (merge request, branch, nightly) in a clear way.",
-        "Spoken English for work answers. My level is Intermediate / B1. I say that honestly.",
+        "Spoken English for work answers. My level is Upper-Intermediate. I say that honestly.",
         "SQL and API checks for defect investigation."
       ]
     },

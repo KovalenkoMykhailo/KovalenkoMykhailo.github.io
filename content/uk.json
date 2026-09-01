@@ -14,7 +14,6 @@
     "print": "Друк / PDF",
     "challenge": "QA-челендж",
     "learn": "Learn",
-    "fit": "JD fit",
     "menu": "Меню",
     "command": "Пошук",
     "commandHint": "Перейти на сторінку, секцію або проєкт",
@@ -147,15 +146,15 @@
       },
       {
         "name": "CI / CD",
-        "items": ["Jenkins", "GitLab CI", "GitHub Actions", "Git"]
+        "items": ["Jenkins", "GitHub Actions", "Git"]
       },
       {
         "name": "Моніторинг",
-        "items": ["Grafana", "Prometheus", "Kibana", "Datadog", "логи"]
+        "items": ["Graylog", "Sentry", "Datadog", "логи"]
       },
       {
         "name": "Інструменти",
-        "items": ["Chrome DevTools", "Charles Proxy", "Sentry", "Allure"]
+        "items": ["Chrome DevTools", "Charles Proxy", "Allure"]
       },
       {
         "name": "QA-методи",
@@ -167,7 +166,7 @@
       },
       {
         "name": "Мова",
-        "items": ["English — Intermediate"]
+        "items": ["English — Upper-Intermediate"]
       }
     ]
   },
@@ -258,22 +257,6 @@
       }
     ]
   },
-  "fit": {
-    "title": "Job-fit checker",
-    "lead": "Вставте JD. Сторінка матчить ключові слова з реального CV — комерція, попередній стек або немає в комерції. Без накрутки.",
-    "placeholder": "Вставте опис вакансії…",
-    "analyze": "Перевірити fit",
-    "sample": "Приклад JD",
-    "upload": "Завантажити .txt",
-    "waiting": "Чекаємо на JD.",
-    "hint": "Працює в браузері. JD нікуди не відправляється.",
-    "strong": "Комерція",
-    "previous": "Попередній стек",
-    "none": "Немає в комерції",
-    "score": "Fit",
-    "empty": "У цьому JD немає відомих ключових слів.",
-    "sampleJd": "Шукаємо Senior QA Automation Engineer. TypeScript і Playwright для UI та API. Page Object Model, fixtures, storageState. Jenkins CI, Allure. SQL і Postman. FinTech — плюс. Appium і GraphQL бажані. k6 performance — плюс."
-  },
   "contact": {
     "title": "Контакти",
     "empty": "Email, LinkedIn, Telegram і GitHub з’являться тут незабаром.",
@@ -282,19 +265,7 @@
     "telegram": "Telegram",
     "github": "GitHub",
     "copy": "Копіювати email",
-    "copied": "Скопійовано",
-    "formTitle": "Написати мені",
-    "formLead": "Повідомлення прийде мені на пошту. Поштовий клієнт не потрібен.",
-    "name": "Ім’я",
-    "emailField": "Ваш email",
-    "message": "Повідомлення",
-    "send": "Надіслати",
-    "sending": "Надсилаю…",
-    "errorName": "Вкажіть ім’я.",
-    "errorEmail": "Вкажіть коректний email.",
-    "errorMessage": "Напишіть повідомлення (мінімум 10 символів).",
-    "errorSend": "Не вдалося надіслати. Напишіть на адресу вище або спробуйте ще раз.",
-    "success": "Дякую. Повідомлення вже летить на мою пошту."
+    "copied": "Скопійовано"
   },
   "footer": "Михайло Коваленко · Senior General QA Engineer"
 }

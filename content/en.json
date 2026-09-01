@@ -14,7 +14,6 @@
     "print": "Print / Save PDF",
     "challenge": "QA challenge",
     "learn": "Learn",
-    "fit": "JD fit",
     "menu": "Menu",
     "command": "Search",
     "commandHint": "Jump to a page, section, or project",
@@ -147,15 +146,15 @@
       },
       {
         "name": "CI / CD",
-        "items": ["Jenkins", "GitLab CI", "GitHub Actions", "Git"]
+        "items": ["Jenkins", "GitHub Actions", "Git"]
       },
       {
         "name": "Monitoring",
-        "items": ["Grafana", "Prometheus", "Kibana", "Datadog", "logs"]
+        "items": ["Graylog", "Sentry", "Datadog", "logs"]
       },
       {
         "name": "Tools",
-        "items": ["Chrome DevTools", "Charles Proxy", "Sentry", "Allure"]
+        "items": ["Chrome DevTools", "Charles Proxy", "Allure"]
       },
       {
         "name": "QA methods",
@@ -167,7 +166,7 @@
       },
       {
         "name": "Language",
-        "items": ["English — Intermediate"]
+        "items": ["English — Upper-Intermediate"]
       }
     ]
   },
@@ -258,22 +257,6 @@
       }
     ]
   },
-  "fit": {
-    "title": "Job-fit checker",
-    "lead": "Paste a JD. This page matches keywords to my real CV — commercial, previous stack, or not in commercial work. Nothing is inflated.",
-    "placeholder": "Paste a job description…",
-    "analyze": "Analyze fit",
-    "sample": "Try a sample JD",
-    "upload": "Upload .txt",
-    "waiting": "Waiting for a job description.",
-    "hint": "Runs in the browser. No JD is sent to a server.",
-    "strong": "Commercial",
-    "previous": "Previous stack",
-    "none": "Not commercial",
-    "score": "Fit",
-    "empty": "No known keywords in this JD.",
-    "sampleJd": "We look for a Senior QA Automation Engineer. TypeScript and Playwright for UI and API. Page Object Model, fixtures, storageState. Jenkins CI, Allure. SQL and Postman. FinTech experience is a plus. Appium and GraphQL are nice to have. k6 performance is a plus."
-  },
   "contact": {
     "title": "Contact",
     "empty": "Email, LinkedIn, Telegram, and GitHub will appear here soon.",
@@ -282,19 +265,7 @@
     "telegram": "Telegram",
     "github": "GitHub",
     "copy": "Copy email",
-    "copied": "Copied",
-    "formTitle": "Write to me",
-    "formLead": "The message goes to my email. You do not need a mail app.",
-    "name": "Name",
-    "emailField": "Your email",
-    "message": "Message",
-    "send": "Send",
-    "sending": "Sending…",
-    "errorName": "Enter your name.",
-    "errorEmail": "Enter a valid email.",
-    "errorMessage": "Write a message (at least 10 characters).",
-    "errorSend": "Could not send. Write to the address above, or try again.",
-    "success": "Thanks. The message is on its way to my inbox."
+    "copied": "Copied"
   },
   "footer": "Mykhailo Kovalenko · Senior General QA Engineer"
 }

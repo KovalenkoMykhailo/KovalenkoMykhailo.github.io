@@ -201,10 +201,8 @@
 
     if (method === "GET" && segs[0] === "stats") {
       const rows = accounts();
-      const active = rows.filter((row) => row.status === "Active").length;
       if (!localStorage.getItem(K_OPEN)) localStorage.setItem(K_OPEN, String(rows.length));
       const open = Number(localStorage.getItem(K_OPEN));
-      if (open !== active) note("count-stale");
       return jsonRes(200, {
         open: open,
         frozen: rows.filter((row) => row.status === "Frozen").length,
@@ -838,7 +836,6 @@
       const tbody = table.querySelector("tbody");
       tbody.replaceChildren();
       items.forEach((row) => {
-        if (row.id === "acc-3" && Number(row.balance) !== Math.floor(Number(row.balance))) note("ui-api-drift");
         const tr = document.createElement("tr");
         tr.dataset.testid = "account-row";
         tr.dataset.id = row.id;
@@ -1138,6 +1135,7 @@
       const detail = await api("accounts/" + id);
       const row = detail.body;
       if (!row || !row.id) return;
+      if (row.id === "acc-3" && Number(row.balance) !== Math.floor(Number(row.balance))) note("ui-api-drift");
       const txs = await api("transfers?status=All");
       const related = ((txs.body && txs.body.items) || []).filter((item) => item.from === id || item.to === id);
       const panel = document.createElement("aside");

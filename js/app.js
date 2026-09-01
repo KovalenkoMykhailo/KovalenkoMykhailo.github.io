@@ -125,7 +125,7 @@
     return page === "learn" ? "./" : base + "learn/";
   }
 
-  const CV_SECTIONS = ["top", "experience", "skills", "fit", "contact"];
+  const CV_SECTIONS = ["top", "experience", "skills", "contact"];
   const FOUND_KEY = "mk-access-found";
 
   function hashId() {
@@ -477,7 +477,6 @@
         href: sandboxDocsHref(),
       },
       { id: "learn", label: nav.learn, hint: nav.pages || "Pages", href: learnHref() },
-      { id: "fit", label: nav.fit, hint: "CV", href: homeHref("fit"), section: "fit" },
       {
         id: "theme",
         label: lang === "uk" ? "Перемкнути тему" : "Toggle theme",
@@ -824,12 +823,6 @@
               "data-cv-section": "contact",
               onClick: (event) => goToCvSection("contact", event),
             }),
-            el("a", {
-              href: homeHref("fit"),
-              text: nav.fit,
-              "data-cv-section": "fit",
-              onClick: (event) => goToCvSection("fit", event),
-            }),
           ]),
           el("span", { class: "nav-split", "aria-hidden": "true" }),
           el("div", { class: "nav-group nav-pages", "aria-label": nav.pages || "Pages" }, [
@@ -868,257 +861,67 @@
     ensurePalette(nav);
   }
 
-  function renderContactForm(c, site) {
-    if (!hasContact(site.email)) return null;
-    const nameErr = el("p", { class: "field-error", id: "err-name", hidden: true });
-    const emailErr = el("p", { class: "field-error", id: "err-email", hidden: true });
-    const msgErr = el("p", { class: "field-error", id: "err-message", hidden: true });
-    const sendErr = el("p", { class: "field-error", id: "err-send", hidden: true, "data-testid": "form-error" });
-    const success = el("p", {
-      class: "form-success",
-      role: "status",
-      "data-testid": "form-success",
-      hidden: true,
-    });
-    const sendBtn = el("button", { class: "btn btn-primary", type: "submit", text: c.send });
-    const emailOk = (value) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
-    const endpoint =
-      site.formEndpoint || "https://formsubmit.co/ajax/" + encodeURIComponent(site.email);
+  const DEVICON = "https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/";
+  const SKILL_ICONS = {
+    "typescript (playwright)": [
+      "typescript/typescript-original.svg",
+      "playwright/playwright-original.svg",
+    ],
+    "java (selenium, rest assured)": [
+      "java/java-original.svg",
+      "selenium/selenium-original.svg",
+    ],
+    "ui testing": ["chrome/chrome-original.svg"],
+    "api testing": ["postman/postman-original.svg"],
+    "e2e testing": ["playwright/playwright-original.svg"],
+    "postman": ["postman/postman-original.svg"],
+    "newman": ["postman/postman-original.svg"],
+    "playwright apirequest": ["playwright/playwright-original.svg"],
+    "postgresql": ["postgresql/postgresql-original.svg"],
+    "nosql": ["mongodb/mongodb-original.svg"],
+    "jenkins": ["jenkins/jenkins-original.svg"],
+    "github actions": ["githubactions/githubactions-original.svg"],
+    "git": ["git/git-original.svg"],
+    "graylog": ["img/skills/graylog.svg"],
+    "datadog": ["datadog/datadog-original.svg"],
+    "chrome devtools": ["chrome/chrome-original.svg"],
+    "charles proxy": ["img/skills/charles.svg"],
+    "sentry": ["sentry/sentry-original.svg"],
+    "allure": ["img/skills/allure.svg"],
+    "auth / tokens / cookies": ["oauth/oauth-original.svg"],
+  };
+  const SKILL_ICO_DARK = {
+    "github/github-original.svg": true,
+    "oauth/oauth-original.svg": true,
+    "sentry/sentry-original.svg": true,
+    "img/skills/charles.svg": true,
+    "img/skills/graylog.svg": true,
+  };
 
-    const form = el("form", {
-      class: "contact-form",
-      "data-testid": "contact-form",
-      novalidate: true,
-      onSubmit: async (event) => {
-        event.preventDefault();
-        const name = form.elements.name.value.trim();
-        const email = form.elements.email.value.trim();
-        const message = form.elements.message.value.trim();
-        const honey = (form.elements.company && form.elements.company.value) || "";
-        let ok = true;
-        nameErr.hidden = name.length >= 2;
-        if (!nameErr.hidden) {
-          nameErr.textContent = c.errorName;
-          ok = false;
-        }
-        emailErr.hidden = emailOk(email);
-        if (!emailErr.hidden) {
-          emailErr.textContent = c.errorEmail;
-          ok = false;
-        }
-        msgErr.hidden = message.length >= 10;
-        if (!msgErr.hidden) {
-          msgErr.textContent = c.errorMessage;
-          ok = false;
-        }
-        success.hidden = true;
-        sendErr.hidden = true;
-        if (!ok) return;
-        if (honey) {
-          success.textContent = c.success;
-          success.hidden = false;
-          form.reset();
-          return;
-        }
-        sendBtn.disabled = true;
-        sendBtn.textContent = c.sending || "Sending…";
-        try {
-          const res = await fetch(endpoint, {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-              Accept: "application/json",
-            },
-            body: JSON.stringify({
-              name,
-              email,
-              message,
-              _subject: "CV site · " + name,
-              _captcha: "false",
-              _template: "table",
-            }),
-          });
-          const data = await res.json().catch(() => ({}));
-          if (!res.ok || data.success === false || data.success === "false") {
-            throw new Error(data.message || "send failed");
-          }
-          success.textContent = c.success;
-          success.hidden = false;
-          form.reset();
-        } catch {
-          sendErr.textContent = c.errorSend;
-          sendErr.hidden = false;
-        } finally {
-          sendBtn.disabled = false;
-          sendBtn.textContent = c.send;
-        }
-      },
-    }, [
-      el("h3", { text: c.formTitle }),
-      el("p", { class: "form-lead", text: c.formLead }),
-      el("label", { class: "field" }, [
-        el("span", { text: c.name }),
-        el("input", {
-          name: "name",
-          type: "text",
-          autocomplete: "name",
-          required: true,
-          "aria-describedby": "err-name",
-        }),
-        nameErr,
-      ]),
-      el("label", { class: "field" }, [
-        el("span", { text: c.emailField }),
-        el("input", {
-          name: "email",
-          type: "email",
-          autocomplete: "email",
-          required: true,
-          "aria-describedby": "err-email",
-        }),
-        emailErr,
-      ]),
-      el("label", { class: "hp", "aria-hidden": "true" }, [
-        el("span", { text: "Company" }),
-        el("input", {
-          name: "company",
-          type: "text",
-          tabindex: "-1",
-          autocomplete: "off",
-        }),
-      ]),
-      el("label", { class: "field" }, [
-        el("span", { text: c.message }),
-        el("textarea", {
-          name: "message",
-          rows: "5",
-          required: true,
-          "aria-describedby": "err-message",
-        }),
-        msgErr,
-      ]),
-      sendBtn,
-      sendErr,
-      success,
-    ]);
-    return form;
+  function skillIconSrc(path) {
+    if (path.startsWith("http")) return path;
+    if (path.startsWith("img/")) return base + path;
+    return DEVICON + path;
   }
 
-  function matchFitKey(haystack, key) {
-    const k = String(key).toLowerCase();
-    const escaped = k.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-    if (k.indexOf(" ") !== -1) return haystack.indexOf(k) !== -1;
-    return new RegExp("(^|[^a-z0-9+#])" + escaped + "([^a-z0-9+#]|$)", "i").test(haystack);
-  }
-
-  function renderFitSection(copy, catalog, lang) {
-    const box = el("div", { class: "fit-result", "data-testid": "fit-result" });
-    const area = el("textarea", {
-      class: "fit-jd",
-      rows: "8",
-      placeholder: copy.placeholder,
-      "data-testid": "fit-jd",
-      "aria-label": copy.title,
-    });
-    const file = el("input", {
-      type: "file",
-      accept: ".txt,text/plain",
-      hidden: true,
-      "data-testid": "fit-file",
-    });
-
-    const paintResult = (jd) => {
-      const hay = " " + String(jd || "").toLowerCase() + " ";
-      const hits = (catalog.items || []).filter((item) =>
-        (item.keys || []).some((key) => matchFitKey(hay, key))
-      );
-      box.replaceChildren();
-      if (!String(jd || "").trim()) {
-        box.append(el("p", { class: "lede", text: copy.waiting }));
-        return;
-      }
-      if (!hits.length) {
-        box.append(el("p", { class: "lede", text: copy.empty }));
-        return;
-      }
-      const strong = hits.filter((item) => item.level === "strong").length;
-      const prev = hits.filter((item) => item.level === "previous").length;
-      const score = Math.round((100 * (strong + 0.5 * prev)) / hits.length);
-      box.append(
-        el("p", { class: "fit-score", "data-testid": "fit-score" }, [
-          el("span", { class: "fit-score-num", text: String(score) + "%" }),
-          el("span", { text: copy.score }),
-        ])
-      );
-      ["strong", "previous", "none"].forEach((level) => {
-        const rows = hits.filter((item) => item.level === level);
-        if (!rows.length) return;
-        box.append(
-          el("div", { class: "fit-group" }, [
-            el("h3", { text: copy[level] }),
-            el(
-              "ul",
-              { class: "chips" },
-              rows.map((row) =>
-                el("li", {
-                  class: "fit-chip fit-chip-" + level,
-                  text: lang === "uk" ? row.uk : row.en,
-                })
-              )
-            ),
-          ])
-        );
-      });
-    };
-
-    paintResult("");
-    file.addEventListener("change", () => {
-      const picked = file.files && file.files[0];
-      if (!picked) return;
-      const reader = new FileReader();
-      reader.onload = () => {
-        area.value = String(reader.result || "");
-        paintResult(area.value);
-      };
-      reader.readAsText(picked);
-    });
-
-    return el("section", { id: "fit" }, [
-      el("h2", { text: copy.title }),
-      el("p", { class: "lede", text: copy.lead }),
-      el("p", { class: "fit-hint", text: copy.hint }),
-      area,
-      file,
-      el("div", { class: "fit-actions" }, [
-        el("button", {
-          class: "btn btn-primary",
-          type: "button",
-          text: copy.analyze,
-          "data-testid": "fit-analyze",
-          onClick: () => paintResult(area.value),
-        }),
-        el("button", {
-          class: "btn btn-ghost",
-          type: "button",
-          text: copy.sample,
-          "data-testid": "fit-sample",
-          onClick: () => {
-            area.value = copy.sampleJd;
-            paintResult(area.value);
-          },
-        }),
-        el("button", {
-          class: "btn btn-ghost",
-          type: "button",
-          text: copy.upload,
-          onClick: () => file.click(),
-        }),
-      ]),
-      box,
+  function renderSkillChip(item) {
+    const icons = SKILL_ICONS[String(item).toLowerCase()] || [];
+    return el("li", { class: icons.length ? "chip-with-ico" : null }, [
+      ...icons.map((path) =>
+        el("img", {
+          class: "chip-ico" + (SKILL_ICO_DARK[path] ? " chip-ico-dark" : ""),
+          src: skillIconSrc(path),
+          alt: "",
+          width: "16",
+          height: "16",
+          decoding: "async",
+        })
+      ),
+      el("span", { text: item }),
     ]);
   }
 
-  function renderHome(data, site, fitCatalog) {
+  function renderHome(data, site) {
     const c = data.contact;
     const p = data.projects;
     const links = [
@@ -1217,6 +1020,40 @@
         el("h2", { text: data.about.title }),
         ...paragraphs(data.about.paragraphs),
       ]),
+      el("section", { id: "experience" }, [
+        el("h2", { text: data.experience.title }),
+        ...data.experience.jobs.map((job) =>
+          el("article", { class: "job" }, [
+            el("div", { class: "job-head" }, [
+              el("h3", { text: job.company + " · " + job.role }),
+              el("div", { class: "job-meta" }, [
+                job.domain ? el("span", { class: "domain-chip", text: job.domain }) : null,
+                job.period ? el("span", { class: "period", text: job.period }) : null,
+              ]),
+            ]),
+            job.place ? el("p", { class: "place", text: job.place }) : null,
+            el(
+              "ul",
+              {},
+              job.points.map((point) => el("li", { text: point }))
+            ),
+            job.stack ? el("p", { class: "stack", text: job.stack }) : null,
+          ])
+        ),
+      ]),
+      el("section", { id: "skills" }, [
+        el("h2", { text: data.skills.title }),
+        ...data.skills.groups.map((group) =>
+          el("div", { class: "skill-group" }, [
+            el("h3", { text: group.name }),
+            el(
+              "ul",
+              { class: "chips" },
+              group.items.map((item) => renderSkillChip(item))
+            ),
+          ])
+        ),
+      ]),
       wins
         ? el("section", { id: "wins" }, [
             el("h2", { text: wins.title }),
@@ -1249,40 +1086,6 @@
             }),
           ]),
         ]),
-      ]),
-      el("section", { id: "experience" }, [
-        el("h2", { text: data.experience.title }),
-        ...data.experience.jobs.map((job) =>
-          el("article", { class: "job" }, [
-            el("div", { class: "job-head" }, [
-              el("h3", { text: job.company + " · " + job.role }),
-              el("div", { class: "job-meta" }, [
-                job.domain ? el("span", { class: "domain-chip", text: job.domain }) : null,
-                job.period ? el("span", { class: "period", text: job.period }) : null,
-              ]),
-            ]),
-            job.place ? el("p", { class: "place", text: job.place }) : null,
-            el(
-              "ul",
-              {},
-              job.points.map((point) => el("li", { text: point }))
-            ),
-            job.stack ? el("p", { class: "stack", text: job.stack }) : null,
-          ])
-        ),
-      ]),
-      el("section", { id: "skills" }, [
-        el("h2", { text: data.skills.title }),
-        ...data.skills.groups.map((group) =>
-          el("div", { class: "skill-group" }, [
-            el("h3", { text: group.name }),
-            el(
-              "ul",
-              { class: "chips" },
-              group.items.map((item) => el("li", { text: item }))
-            ),
-          ])
-        ),
       ]),
       el("section", { id: "education" }, [
         el("h2", { text: data.education.title }),
@@ -1324,9 +1127,6 @@
         ),
         list,
       ]),
-      data.fit
-        ? renderFitSection(data.fit, fitCatalog || { items: [] }, chrome.lang)
-        : el("section", { id: "fit", hidden: true }),
       el("section", { id: "contact" }, [
         el("h2", { text: c.title }),
         links.length
@@ -1361,7 +1161,6 @@
               })
             )
           : el("p", { class: "empty-contacts", text: c.empty }),
-        renderContactForm(c, site),
       ])
     );
     paintProjects();
@@ -1472,7 +1271,7 @@
         if (!items.length) return;
         shown += items.length;
         list.append(
-          el("section", { class: "qa-group", id: group.id }, [
+          el("section", { class: "qa-group" }, [
             el("h2", { text: group.title }),
             ...items.map((item) => {
               const id = qaItemId(item);
@@ -1480,18 +1279,6 @@
                 el("summary", { text: item.q }),
                 el("div", { class: "qa-answer" }, [
                   el("p", { text: item.a }),
-                  el("button", {
-                    class: "copy-btn",
-                    type: "button",
-                    text: data.copyLink,
-                    onClick: (event) => {
-                      event.preventDefault();
-                      event.stopPropagation();
-                      const url = new URL(location.href);
-                      url.hash = id;
-                      copyText(url.toString(), data.copied, event.currentTarget);
-                    },
-                  }),
                 ]),
               ]);
               details.addEventListener("toggle", () => {
@@ -1514,9 +1301,6 @@
           node.open = true;
           node.scrollIntoView({ behavior: "instant", block: "start" });
         }
-      } else if (id) {
-        const node = document.getElementById(id);
-        if (node) node.scrollIntoView({ behavior: "instant", block: "start" });
       }
     };
 
@@ -1549,9 +1333,11 @@
             "aria-pressed": !tag,
             text: data.allTags,
             onClick: () => {
+              const y = window.scrollY;
               tag = "";
               history.replaceState(null, "", location.pathname + location.search);
               paintQa();
+              window.scrollTo(0, y);
             },
           }),
           ...data.groups.map((group) =>
@@ -1561,9 +1347,11 @@
               "data-qa-tag": group.id,
               text: group.title,
               onClick: () => {
+                const y = window.scrollY;
                 tag = tag === group.id ? "" : group.id;
                 history.replaceState(null, "", tag ? "#" + tag : location.pathname + location.search);
                 paintQa();
+                window.scrollTo(0, y);
               },
             })
           ),
@@ -2127,13 +1915,11 @@
 
     try {
       const loaders = [loadJson("content/site.json"), loadJson(contentFile(lang))];
-      if (page === "home") loaders.push(loadJson("content/fit.json"));
       if (page === "sandbox") loaders.push(loadJson("content/sandbox-docs-" + lang + ".json"));
       const loaded = await Promise.all(loaders);
       const site = loaded[0];
       const data = loaded[1];
       const extra = loaded[2];
-      const fitCatalog = page === "home" ? extra || { items: [] } : { items: [] };
       const guide = page === "sandbox" ? extra : null;
       chrome = { data, site, lang, guide };
 
@@ -2149,7 +1935,7 @@
       else if (page === "sandbox-docs") location.replace(base + "sandbox/#docs");
       else if (page === "learn") renderLearn(data);
       else {
-        renderHome(data, site, fitCatalog);
+        renderHome(data, site);
         scrollToHash();
         watchCvSections();
       }

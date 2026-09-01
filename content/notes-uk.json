@@ -14,7 +14,6 @@
     "print": "Друк / PDF",
     "challenge": "QA-челендж",
     "learn": "Learn",
-    "fit": "JD fit",
     "menu": "Меню",
     "command": "Пошук",
     "commandHint": "Перейти на сторінку або секцію",
@@ -81,7 +80,7 @@
       "paragraphs": [
         "Підготовка по Playwright: fixtures, storageState, APIRequest, стабільні локатори, чому тест flaky.",
         "Як спокійно пояснити фреймворк і джоби в Jenkins (merge request, гілка, nightly).",
-        "Spoken English для робочих відповідей. Рівень — Intermediate / B1. Так і кажу.",
+        "Spoken English для робочих відповідей. Рівень — Upper-Intermediate. Так і кажу.",
         "SQL і API для розбору дефектів."
       ]
     },

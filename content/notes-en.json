@@ -21,8 +21,973 @@
     "commandK": "⌘K"
   },
   "title": "Notes",
-  "intro": "Short interview notes live here. The full conspect is on GitHub: 38 sections, glossary, learning paths.",
+  "intro": "Short interview notes live here. The knowledge base is grouped by topic so it can grow. The full conspect is on GitHub.",
   "qaCta": "Go to interview Q&A",
+  "prep": {
+    "id": "interview-prep",
+    "title": "Interview prep",
+    "lead": "About 100 spoken cards for a senior AQA interview: JavaScript, Git, CI, Playwright, frameworks, patterns, API, SQL, process. Filter a topic, open one question. Each answer names the term, then what I do with it. Code and tiny schemas where they help. To add a card: prep.groups[].items in notes-en.json and notes-uk.json, same id.",
+    "allLabel": "All topics",
+    "searchPlaceholder": "Search a card",
+    "emptyFilter": "Nothing in this topic.",
+    "groups": [
+      {
+        "id": "js",
+        "title": "JavaScript",
+        "items": [
+          {
+            "id": "event-loop",
+            "q": "What is the event loop?",
+            "a": [
+              "Event loop is the queue of JavaScript. The engine is single-thread for your code. It runs one thing at a time.",
+              "Order: all sync code first. Then microtasks (Promise.then, queueMicrotask, code after await). Then macrotasks (setTimeout, setInterval). Then again.",
+              "setTimeout(fn, 0) still runs last. Event loop is not a while loop."
+            ],
+            "code": "console.log(1);\nsetTimeout(() => console.log(2), 0);\nPromise.resolve().then(() => console.log(3));\nconsole.log(4);\n// 1, 4, 3, 2\n\nsync → microtask (Promise) → macrotask (timeout)"
+          },
+          {
+            "id": "clone",
+            "q": "Shallow copy vs deep copy of an object",
+            "a": [
+              "Copy means a new object. Shallow copy copies only the first level. Nested objects stay the same reference. If I change nested.name, both objects see it.",
+              "Shallow: { ...user } or Object.assign({}, user). Deep copy copies the whole tree. I use structuredClone(user). JSON.parse(JSON.stringify(user)) also copies nested fields, but it drops functions, Date becomes a string, undefined is lost."
+            ],
+            "code": "const user = { name: 'Ada', nested: { n: 1 } };\nconst shallow = { ...user };\nshallow.nested.n = 2;\nconsole.log(user.nested.n); // 2  same nested object\n\nconst deep = structuredClone(user);\ndeep.nested.n = 9;\nconsole.log(user.nested.n); // 2  independent tree"
+          },
+          {
+            "id": "js-async",
+            "q": "Promise vs async/await",
+            "a": [
+              "A Promise is an object for a value that comes later: pending, fulfilled, or rejected. .then() runs on success. .catch() runs on error.",
+              "async/await is the same Promise with easier syntax. await waits. try/catch handles the error. In Playwright almost every step is async. I always await click, expect, and API."
+            ],
+            "code": "async function loadUser(request) {\n  try {\n    const res = await request.get('/api/v1/me');\n    return res.json();\n  } catch (err) {\n    throw err;\n  }\n}"
+          },
+          {
+            "id": "js-closure",
+            "q": "What is a closure?",
+            "a": [
+              "A closure is a function that remembers variables from the place where it was created, even after that outer function finished.",
+              "In tests I use a small factory: a function returns helpers that still know baseURL or userId."
+            ],
+            "code": "function api(baseURL) {\n  return {\n    users: () => fetch(baseURL + '/users'),\n  };\n}\nconst client = api('https://example.test');\n// client.users still knows baseURL"
+          },
+          {
+            "id": "js-array",
+            "q": "map, filter, reduce",
+            "a": [
+              "These are array methods. They do not change the original array. They return a new value.",
+              "filter keeps items that pass a check. map turns each item into something new. reduce walks the list and builds one result, for example a count.",
+              "QA live coding is often this: keep failed tests, unique emails, count status codes."
+            ],
+            "code": "const runs = [\n  { name: 'login', ok: true },\n  { name: 'pay', ok: false },\n];\nconst failed = runs.filter((t) => !t.ok);\nconst names = runs.map((t) => t.name);\nconst failCount = runs.reduce((n, t) => n + (t.ok ? 0 : 1), 0);"
+          },
+          {
+            "id": "js-equal",
+            "q": "== vs ===",
+            "a": [
+              "=== is strict equal. Same value and same type. 1 === '1' is false.",
+              "== is loose equal. It converts types. 1 == '1' is true. In tests I use ===, also in Playwright expect when I compare a string and a number."
+            ],
+            "code": "1 === '1'  // false\n1 == '1'   // true\nnull == undefined  // true\nnull === undefined // false"
+          },
+          {
+            "id": "js-this",
+            "q": "What is this?",
+            "a": [
+              "this is the object that owns the current call. In a normal function, this depends on how you call it. In an arrow function, this is taken from outside. Arrow does not make its own this.",
+              "In Playwright I rarely need this. In a page class I use this.page for the page of this object."
+            ],
+            "code": "class LoginPage {\n  constructor(page) { this.page = page; }\n  async open() { await this.page.goto('/login'); }\n}"
+          },
+          {
+            "id": "js-scope",
+            "q": "var vs let vs const",
+            "a": [
+              "Scope is where a name is visible. var is function scope and can be used before the line (hoisting). let and const are block scope { }.",
+              "const cannot get a new assign. The object inside can still change. I use const by default, let when the value must change, I almost never use var."
+            ],
+            "code": "if (true) {\n  let x = 1;\n  const y = 2;\n}\n// x and y are not visible here"
+          },
+          {
+            "id": "js-truthy",
+            "q": "Truthy, falsy, null, undefined",
+            "a": [
+              "Falsy values: false, 0, '', null, undefined, NaN. Everything else is truthy.",
+              "undefined means the value was not set. null means we set empty on purpose. I check res.body == null when the API may send nothing."
+            ]
+          },
+          {
+            "id": "js-optional",
+            "q": "Optional chaining and nullish coalescing",
+            "a": [
+              "user?.email reads email only if user is not null or undefined. If user is missing, the result is undefined. No crash.",
+              "?? means: use the right side only if the left is null or undefined. 0 ?? 10 is 0. '' || 'x' would become 'x'. I use ?? for numbers that can be 0."
+            ],
+            "code": "const email = user?.profile?.email ?? 'unknown';"
+          },
+          {
+            "id": "js-json",
+            "q": "JSON.parse and JSON.stringify",
+            "a": [
+              "JSON is a text format for data. stringify turns an object into a string. parse turns a string into an object.",
+              "I use it for API bodies and for logs. It is not a perfect deep clone: functions and undefined disappear."
+            ],
+            "code": "const body = JSON.stringify({ email: 'ada@test' });\nconst data = JSON.parse(body);"
+          },
+          {
+            "id": "js-promise-all",
+            "q": "Promise.all vs await in a loop",
+            "a": [
+              "await in a loop waits one by one. Slow if I have many independent calls.",
+              "Promise.all runs them together and waits for all. If one fails, all fail. For independent GETs I prefer Promise.all."
+            ],
+            "code": "const [a, b] = await Promise.all([\n  request.get('/users'),\n  request.get('/accounts'),\n]);"
+          },
+          {
+            "id": "js-error",
+            "q": "How I handle errors in async tests",
+            "a": [
+              "try/catch around await. Playwright expect already throws if the assert fails. I do not swallow the error.",
+              "For API I check status first, then body. If the test should fail, I let it fail with a clear message."
+            ]
+          },
+          {
+            "id": "js-types",
+            "q": "typeof and Array.isArray",
+            "a": [
+              "typeof tells the primitive type: string, number, boolean, undefined, function, object. typeof null is 'object'. That is a JS quirk.",
+              "For lists I use Array.isArray(x). I use this when I check an API body: is items an array."
+            ],
+            "code": "Array.isArray(body.items)  // true for []\ntypeof null                 // 'object'"
+          }
+        ]
+      },
+      {
+        "id": "git",
+        "title": "Git",
+        "items": [
+          {
+            "id": "git-en",
+            "q": "merge, rebase, fetch, pull, push — what each word means",
+            "a": [
+              "Git is a tool that saves versions of files as commits. A commit is a snapshot with a message. A branch is a moving pointer to a commit. remote is the copy on the server (origin). origin/main is main on the server.",
+              "merge = join two branches. Git adds a merge commit with two parents. History stays as it happened.",
+              "rebase = take my commits and replay them on top of another branch. History looks like a straight line. I do not rebase a shared main.",
+              "fetch = download new commits from remote. My working files do not change.",
+              "pull = fetch + then merge (or rebase) into my branch. My files update.",
+              "push = send my local commits to remote so the team can see them."
+            ],
+            "code": "remote origin/main\n    fetch ↓          ↑ push\nlocal main / feature\n\npull  = fetch + merge (or rebase)\nmerge = extra merge commit, two parents\nrebase = replay my commits on top, straight line"
+          },
+          {
+            "id": "git-branch",
+            "q": "What is a branch and how I work with it",
+            "a": [
+              "A branch is a name that points to a commit. git switch -c feat/login creates a new branch from where I am now.",
+              "I make a feature branch from updated main. I do not commit straight to main on a team project."
+            ],
+            "code": "git fetch origin\ngit switch main\ngit pull\ngit switch -c feat/login"
+          },
+          {
+            "id": "git-commit",
+            "q": "What is a commit?",
+            "a": [
+              "A commit is a saved snapshot: files + author + message + parent. git add stages files. git commit -m 'message' saves the snapshot.",
+              "A good message says why, not only what. I do not put secrets in a commit."
+            ]
+          },
+          {
+            "id": "git-conflict",
+            "q": "What is a merge conflict?",
+            "a": [
+              "A conflict means two commits changed the same lines. Git cannot choose. I open the file, keep the right code, git add, then git merge --continue or git rebase --continue.",
+              "I read locators and tests. I do not click accept all incoming."
+            ],
+            "code": "<<<<<<< HEAD\ngetByTestId('save')\n=======\ngetByRole('button', { name: 'Save' })\n>>>>>>> feat/login"
+          },
+          {
+            "id": "git-force",
+            "q": "What is force push?",
+            "a": [
+              "git push --force overwrites the remote branch. The old commits on the server can disappear for others.",
+              "I never force push to main. If I must rewrite my own branch, I use --force-with-lease. It fails if someone else pushed first."
+            ]
+          },
+          {
+            "id": "git-stash",
+            "q": "What is git stash?",
+            "a": [
+              "stash means put my unfinished changes on a shelf. The working tree becomes clean. Then I can switch branch.",
+              "git stash push -u saves. git stash pop brings the changes back. I stash only when I must change branch fast."
+            ]
+          },
+          {
+            "id": "git-cherry",
+            "q": "What is cherry-pick?",
+            "a": [
+              "cherry-pick copies one commit onto my current branch. It does not bring the whole other branch.",
+              "I use it for a hot fix commit that must go to main without the rest of the feature."
+            ],
+            "code": "git cherry-pick abc1234"
+          },
+          {
+            "id": "git-undo",
+            "q": "reset vs revert",
+            "a": [
+              "git revert makes a new commit that undoes an old one. History stays. Safe on shared main.",
+              "git reset moves the branch pointer. --hard also drops files. I use reset only on my local branch that nobody pulled."
+            ]
+          },
+          {
+            "id": "git-pr",
+            "q": "What is a pull request?",
+            "a": [
+              "A pull request (PR) is a request to merge my branch into another branch, usually main. People review the diff. CI runs tests.",
+              "I do not merge if CI is red. I answer comments. Then squash or merge as the team wants."
+            ]
+          },
+          {
+            "id": "git-ignore",
+            "q": "What is .gitignore?",
+            "a": [
+              ".gitignore lists files Git should not track: node_modules, reports, .env. Secrets must not go to the repo.",
+              "If a file is already committed, adding it to gitignore is not enough. I must remove it from the index."
+            ],
+            "code": "node_modules/\ntest-results/\nplaywright-report/\n.env"
+          }
+        ]
+      },
+      {
+        "id": "ci",
+        "title": "CI",
+        "items": [
+          {
+            "id": "ci-what",
+            "q": "What is CI/CD?",
+            "a": [
+              "CI means Continuous Integration. Every push or PR runs checks automatically: install, tests, maybe lint. The team sees a red or green result.",
+              "CD means Continuous Delivery or Deploy. After green CI, the build can go to an environment. I am not the owner of production deploy. I own the test job in the pipeline."
+            ],
+            "code": "push / PR\n  → checkout\n  → install deps\n  → lint / tsc  (quality gate)\n  → tests\n  → report + notify\n  → merge only if green"
+          },
+          {
+            "id": "quality-gate",
+            "q": "What is a quality gate?",
+            "a": [
+              "A quality gate is a must-pass check in CI. If tests fail or lint fails, we do not merge. It is a rule, not a feeling that the product is good.",
+              "On my last project: tests on a PR to main, and a nightly job. No merge if the PR job is red."
+            ]
+          },
+          {
+            "id": "ci-jenkinsfile",
+            "q": "What is a Jenkinsfile?",
+            "a": [
+              "Jenkins is a CI server. A Jenkinsfile is a text file in the repo that describes the pipeline: stages and steps.",
+              "Typical stages for tests: checkout (take code), install, run tests, publish report, notify chat. I can explain this flow. I do not claim I owned the whole Jenkins cluster."
+            ],
+            "code": "pipeline {\n  stages {\n    stage('Checkout') { steps { checkout scm } }\n    stage('Install')  { steps { sh 'npm ci' } }\n    stage('Test')     { steps { sh 'npx playwright test' } }\n    stage('Report')   { steps { archiveArtifacts 'playwright-report/**' } }\n  }\n}"
+          },
+          {
+            "id": "ci-gha",
+            "q": "GitHub Actions in one minute",
+            "a": [
+              "GitHub Actions is CI inside GitHub. A workflow is a YAML file in .github/workflows. A job is a machine run. A step is one command.",
+              "I used GitHub Actions for the public Playwright suite. For work CI I also used Jenkins. I do not claim GitLab CI as a strong commercial duty."
+            ],
+            "code": "on: [pull_request]\njobs:\n  test:\n    runs-on: ubuntu-latest\n    steps:\n      - uses: actions/checkout@v4\n      - uses: actions/setup-node@v4\n      - run: npm ci\n      - run: npx playwright install --with-deps\n      - run: npx playwright test"
+          },
+          {
+            "id": "static-analysis",
+            "q": "What is static analysis?",
+            "a": [
+              "Static analysis reads code without running tests. ESLint finds style and bug patterns. tsc checks TypeScript types. Sonar is a platform some teams use.",
+              "Cursor is not static analysis. I use Cursor every day and I still read the diff. I did not run Sonar as a gate at work."
+            ]
+          },
+          {
+            "id": "ci-local",
+            "q": "Tests pass local, fail in CI",
+            "a": [
+              "I compare env, test data, time zone, browser version, workers. Local often has one worker and old cookies.",
+              "I open the CI trace or video. I do not start with waitForTimeout."
+            ]
+          },
+          {
+            "id": "ci-report",
+            "q": "What is an artifact / report?",
+            "a": [
+              "An artifact is a file CI keeps after the job: HTML report, trace, screenshot, video. Without it I cannot debug a red build.",
+              "I used Playwright HTML and Allure. The report is for the team, not only for me."
+            ]
+          },
+          {
+            "id": "ci-retry",
+            "q": "What are retries in CI?",
+            "a": [
+              "Retry means CI runs a failed test again. It can hide a flake. I use 1–2 retries in CI, zero local, so I still see the problem.",
+              "A flake that always needs retry is not green. I still open the trace and fix the wait or the data."
+            ]
+          },
+          {
+            "id": "ci-shard",
+            "q": "What is sharding?",
+            "a": [
+              "Sharding splits the suite across machines. --shard=1/3 runs the first third of files. Three jobs finish faster than one long job.",
+              "I know the idea. I used parallel workers on one machine more often than many shards."
+            ],
+            "code": "npx playwright test --shard=1/3"
+          },
+          {
+            "id": "ci-secrets",
+            "q": "How CI keeps secrets",
+            "a": [
+              "A secret is a password or token. It lives in Jenkins credentials or GitHub Secrets, not in git.",
+              "Tests read it from env. I never print the token in the log."
+            ]
+          },
+          {
+            "id": "ci-npm",
+            "q": "npm install vs npm ci",
+            "a": [
+              "npm ci installs exact versions from package-lock.json. It is for CI. Clean and repeatable.",
+              "npm install may update the lock file. I use npm ci in the pipeline."
+            ]
+          },
+          {
+            "id": "ci-nightly",
+            "q": "PR job vs nightly",
+            "a": [
+              "PR job is short: smoke or a fast set, so review is not blocked for an hour.",
+              "Nightly is the full suite when people sleep. Both are CI. Quality gate for merge is the PR job."
+            ]
+          }
+        ]
+      },
+      {
+        "id": "playwright",
+        "title": "Playwright",
+        "items": [
+          {
+            "id": "pw-what",
+            "q": "What is Playwright?",
+            "a": [
+              "Playwright is a tool to control a real browser from code. I write TypeScript tests. It can open Chromium, Firefox, WebKit.",
+              "It has a test runner with fixtures, locators, auto-wait, trace, and APIRequest. This is my main stack now."
+            ]
+          },
+          {
+            "id": "pw-vs-selenium",
+            "q": "Playwright vs Selenium",
+            "a": [
+              "Selenium talks to the browser through WebDriver. I used Java + Selenium at RIA.com. You often write extra waits.",
+              "Playwright talks to the browser more directly and waits for actionability for me. Today I choose Playwright for new UI work. I can still read Selenium code."
+            ]
+          },
+          {
+            "id": "pw-browser-context-page",
+            "q": "browser vs context vs page",
+            "a": [
+              "browser is the browser process (Chrome). context is one isolated profile, like incognito: cookies and storage are separate.",
+              "page is one tab inside a context. Parallel tests should not share one page. Playwright gives a fresh context/page per test by default."
+            ],
+            "code": "browser\n  └─ context (cookies, storageState)\n       └─ page (tab)\n            └─ frame / locator"
+          },
+          {
+            "id": "pw-locator",
+            "q": "What is a Locator?",
+            "a": [
+              "A Locator is a recipe how to find an element. It does not grab the node at create time. On each click it searches again. That is why it survives re-render.",
+              "ElementHandle is a snapshot of one node. It goes stale. I use locators, not page.$()."
+            ],
+            "code": "await page.getByRole('button', { name: 'Save' }).click();"
+          },
+          {
+            "id": "pw-locators",
+            "q": "Which locators I prefer",
+            "a": [
+              "Order I like: getByRole, getByLabel, getByPlaceholder, getByTestId. Role means the accessible name a user and a screen reader see.",
+              "Long CSS and nth(3) break when the layout moves. data-testid is for automation. I still check it points to the real control."
+            ],
+            "code": "await page.getByRole('textbox', { name: 'Email' }).fill(email);\nawait page.getByTestId('login-submit').click();"
+          },
+          {
+            "id": "pw-strict",
+            "q": "What is strict mode?",
+            "a": [
+              "If a locator matches more than one node, Playwright throws. That is strict mode. It is good: I must make the locator unique.",
+              "I filter with .filter({ hasText }) or getByRole name. I do not hide the problem with .first() unless I can explain why."
+            ]
+          },
+          {
+            "id": "pw-autowait",
+            "q": "Auto-wait vs waitForTimeout",
+            "a": [
+              "Auto-wait: Playwright retries until the element is actionable — visible, enabled, stable — or until timeout.",
+              "waitForTimeout(5000) is sleep. It makes CI slow and flaky. I wait for a locator or waitForResponse instead."
+            ]
+          },
+          {
+            "id": "pw-expect",
+            "q": "Web-first assertions",
+            "a": [
+              "expect(locator).toBeVisible() retries until true or timeout. It is not a one-shot check.",
+              "I assert the user result: button visible, text, URL. I do not assert only that click() did not throw."
+            ],
+            "code": "await expect(page.getByRole('heading', { name: 'Accounts' })).toBeVisible();"
+          },
+          {
+            "id": "pw-fixtures",
+            "q": "What is a fixture?",
+            "a": [
+              "A fixture is setup and teardown that a test asks by name. Built-in: page, context, browser, request.",
+              "My fixtures go through test.extend. storageState is not a built-in fixture name. I save it after API login and reuse it."
+            ],
+            "code": "export const test = base.extend({\n  shopPage: async ({ page }, use) => {\n    await use(new ShopPage(page));\n  },\n});"
+          },
+          {
+            "id": "pw-scope",
+            "q": "test-scoped vs worker-scoped fixture",
+            "a": [
+              "test scope: new value for every test. Default for page. Isolated.",
+              "worker scope: one value for many tests in the worker. Good for a heavy login file. I do not put a shared page in worker scope."
+            ]
+          },
+          {
+            "id": "pw-storage",
+            "q": "What is storageState?",
+            "a": [
+              "storageState is a JSON of cookies and localStorage. After login I save it. Next tests start already logged in.",
+              "I usually login with API, then save storageState. A separate UI test still checks the login form."
+            ],
+            "code": "await request.post('/api/v1/auth/login', { data: { email, password } });\nawait page.context().storageState({ path: 'playwright/.auth/user.json' });"
+          },
+          {
+            "id": "pw-api",
+            "q": "APIRequest in Playwright",
+            "a": [
+              "APIRequestContext sends HTTP without a browser. The request fixture is that client.",
+              "I use it for setup, teardown, and API checks. UI should not click login if API can create the session.",
+              "In the Northgate Console pet, in-browser REST is a Service Worker. There I wait with page.waitForResponse, not Playwright request."
+            ],
+            "code": "const res = await request.get('/api/v1/accounts');\nexpect(res.status()).toBe(200);\nconst body = await res.json();"
+          },
+          {
+            "id": "pw-route",
+            "q": "What is page.route?",
+            "a": [
+              "page.route intercepts a network call in the browser. I can mock a JSON or fail the API on purpose.",
+              "I mock when the real service is slow or I need a rare error. I do not mock the happy path if I can hit a real test API."
+            ],
+            "code": "await page.route('**/api/v1/accounts', (route) =>\n  route.fulfill({ json: { items: [] } }),\n);"
+          },
+          {
+            "id": "pw-wait-res",
+            "q": "waitForResponse vs waitForTimeout",
+            "a": [
+              "I register waitForResponse before the click. Then I click. Then I assert status. Otherwise the call can finish before I listen.",
+              "This is how I catch 401 or 200 in the UI flow."
+            ],
+            "code": "const wait = page.waitForResponse('**/api/v1/accounts');\nawait page.getByTestId('refresh').click();\nexpect((await wait).status()).toBe(200);"
+          },
+          {
+            "id": "pw-trace",
+            "q": "Trace, screenshot, video",
+            "a": [
+              "Trace is a recording of the test: DOM, network, steps. I open it with Playwright Trace Viewer.",
+              "On fail I look at the timeline, not only the log. Screenshot and video are extra artifacts in CI."
+            ]
+          },
+          {
+            "id": "pw-iframe",
+            "q": "Frames and new tabs",
+            "a": [
+              "A frame is a page inside a page (iframe). I use page.frameLocator('iframe').getByRole(...).",
+              "A new tab is another page. I wait for popup with context.waitForEvent('page'), then work on that page."
+            ]
+          },
+          {
+            "id": "pw-config",
+            "q": "What is playwright.config.ts?",
+            "a": [
+              "This file is the runner config: baseURL, browsers (projects), retries, workers, reporter, timeout.",
+              "CI and local can differ: more retries in CI, one worker local when I debug."
+            ]
+          },
+          {
+            "id": "pw-parallel",
+            "q": "Workers and isolation",
+            "a": [
+              "A worker is a parallel process. Several tests run at the same time. Each test should have its own user or data.",
+              "If two tests edit the same account, they flake. I used different accounts for parallel runs."
+            ]
+          },
+          {
+            "id": "pw-grep",
+            "q": "How I run a subset of tests",
+            "a": [
+              "I tag tests in the title: @smoke @api. Then npx playwright test --grep @smoke.",
+              "That is how a PR job stays short and nightly stays full."
+            ]
+          },
+          {
+            "id": "pw-codegen",
+            "q": "Codegen and AI-generated tests",
+            "a": [
+              "playwright codegen records clicks. Cursor can draft a test. I never merge that blindly.",
+              "I rewrite locators, waits, and asserts. I own the test. AI is a draft."
+            ]
+          }
+        ]
+      },
+      {
+        "id": "framework",
+        "title": "Frameworks",
+        "items": [
+          {
+            "id": "fw-structure",
+            "q": "How I structure a test project",
+            "a": [
+              "A framework is the folder + rules, not only Playwright. Tests read as a flow. Details live in pages, fixtures, utils.",
+              "Typical: pages/, fixtures/, tests/ui, tests/api, utils/, playwright.config.ts. CI config sits next to the tests."
+            ],
+            "code": "tests/\n  ui/\n  api/\npages/\nfixtures/\nutils/\nplaywright.config.ts"
+          },
+          {
+            "id": "fw-data",
+            "q": "Test data and env",
+            "a": [
+              "Env means environment variables: baseURL, passwords. They live in .env or CI secrets, not in git.",
+              "A factory is a function that builds a user or an account. I do not copy the same JSON into five tests."
+            ],
+            "code": "function makeUser() {\n  return { email: `qa+${Date.now()}@test`, role: 'Member' };\n}"
+          },
+          {
+            "id": "fw-stacks",
+            "q": "Playwright vs pytest vs Selenium in my career",
+            "a": [
+              "Today I lead with TypeScript and Playwright. RIA.com: Java, Selenium, REST Assured. Clear Junction: Python, pytest, Selenium, Docker, later Playwright.",
+              "If the job is Python/pytest, I start with Clear Junction. I do not say pytest is my daily stack now."
+            ]
+          },
+          {
+            "id": "fw-ts",
+            "q": "Why TypeScript for tests",
+            "a": [
+              "TypeScript adds types on top of JavaScript. The editor and tsc catch a wrong field before CI.",
+              "Playwright ships types. I still write simple types, not clever generics."
+            ]
+          },
+          {
+            "id": "fw-independent",
+            "q": "Why tests must be independent",
+            "a": [
+              "Independent means test B does not need test A. I can run one file. Parallel does not break data.",
+              "Shared mutable user is the usual bug. I create data in beforeEach or via API, or I isolate users."
+            ]
+          },
+          {
+            "id": "fw-tags",
+            "q": "Tags and suites",
+            "a": [
+              "A tag is a label in the title: @smoke. The PR job runs smoke. Nightly runs all.",
+              "I do not put 200 UI tests on every PR if they take 40 minutes."
+            ]
+          },
+          {
+            "id": "fw-allure",
+            "q": "Allure vs Playwright HTML",
+            "a": [
+              "A reporter turns results into a page. Playwright HTML is built-in. Allure is another report some teams want.",
+              "I used both. The value is grouping fails: product vs flake vs data."
+            ]
+          },
+          {
+            "id": "fw-review-ai",
+            "q": "How I review AI-generated test code",
+            "a": [
+              "Cursor drafts fast. I read locators, waits, test data, and the assert. If the assert does not hit a risk, I reject it.",
+              "I do not accept self-healing CSS. Role, label, test id stay my decision."
+            ]
+          },
+          {
+            "id": "fw-config",
+            "q": "How I handle several environments",
+            "a": [
+              "baseURL and users come from env: test, staging. The same tests, different data.",
+              "I do not hardcode https://prod inside a spec."
+            ],
+            "code": "const baseURL = process.env.BASE_URL;\nexpect(baseURL).toBeTruthy();"
+          },
+          {
+            "id": "fw-layer",
+            "q": "Layers of a UI+API framework",
+            "a": [
+              "Test layer: the spec, the story. Page/API layer: how we click or call. Utils: wait helpers, dates. Config: env. Data: factories.",
+              "The spec should not new WebDriver or paste a 20-line fetch. That is what a senior interviewer wants to hear."
+            ],
+            "code": "spec → page object / api client → http + browser\n         ↑ config + factories"
+          }
+        ]
+      },
+      {
+        "id": "patterns",
+        "title": "Patterns",
+        "items": [
+          {
+            "id": "pom",
+            "q": "What is Page Object Model?",
+            "a": [
+              "POM is a pattern: one class per screen (or block). Locators and actions live there. The test calls login(), not fill('#x').",
+              "When the UI changes I edit one class. Limit: a giant page class is also bad. Then I split a component object."
+            ],
+            "code": "class LoginPage {\n  constructor(private page: Page) {}\n  async login(email: string, pass: string) {\n    await this.page.getByLabel('Email').fill(email);\n    await this.page.getByLabel('Password').fill(pass);\n    await this.page.getByRole('button', { name: 'Sign in' }).click();\n  }\n}"
+          },
+          {
+            "id": "aaa",
+            "q": "Arrange Act Assert",
+            "a": [
+              "AAA is a pattern for one test. Arrange = data and login. Act = one user action. Assert = one clear check.",
+              "I do not hide three unrelated asserts in a helper with no name."
+            ],
+            "code": "// Arrange\nawait loginAsAda(page);\n// Act\nawait accounts.create('Ops');\n// Assert\nawait expect(page.getByText('Ops')).toBeVisible();"
+          },
+          {
+            "id": "test-pyramid",
+            "q": "Test automation pyramid",
+            "a": [
+              "The pyramid is a picture of volume. Bottom: many cheap unit and API tests. Top: few UI tests. UI is slow and flakes more.",
+              "I automate critical UI plus API. I do not cover every click with Playwright."
+            ],
+            "code": "        UI (few, slow)\n      API / integration\n   unit (many, cheap)"
+          },
+          {
+            "id": "oop-access",
+            "q": "public, private, protected",
+            "a": [
+              "These are access modifiers. They say who can see a field or method.",
+              "public = the test can call it. private = only this class (locators, helpers). protected = this class and a child class. Passwords are not a private field. Passwords live in env. In my Playwright pages I often keep locators private and actions public. I should not say everything is public."
+            ]
+          },
+          {
+            "id": "waits",
+            "q": "Wait for a condition, not sleep",
+            "a": [
+              "A condition wait means: until visible, until URL, until 200. Sleep means wait N ms no matter what.",
+              "Sleep hides races and comes back in CI."
+            ]
+          },
+          {
+            "id": "factory",
+            "q": "Test data factory",
+            "a": [
+              "A factory builds an object with defaults I can override. Each test can get a unique email.",
+              "Better than one shared user.json that parallel tests fight over."
+            ],
+            "code": "const user = makeUser({ role: 'Admin' });"
+          },
+          {
+            "id": "dry-damp",
+            "q": "DRY vs DAMP in tests",
+            "a": [
+              "DRY means Do not Repeat Yourself. DAMP means Descriptive And Meaningful Phrases — the test should still read clearly.",
+              "If I hide the whole story in one mega-helper, the test is short and nobody knows what it checks. I repeat a little if it reads better."
+            ]
+          },
+          {
+            "id": "component",
+            "q": "Component / fragment object",
+            "a": [
+              "When a widget is on many pages (header, modal), I extract a small class, not a 800-line page.",
+              "Same idea as POM, smaller scope."
+            ]
+          },
+          {
+            "id": "singleton",
+            "q": "Why I do not share one page across tests",
+            "a": [
+              "A singleton browser for all tests was common in old Selenium. Tests leak cookies and order.",
+              "Playwright gives a new context per test. I keep that. Isolation first."
+            ]
+          },
+          {
+            "id": "screenplay",
+            "q": "Screenplay pattern — do I use it?",
+            "a": [
+              "Screenplay is actors + tasks + questions. Some teams like it for huge suites.",
+              "I do not have commercial Screenplay. I say POM + fixtures. If they use Screenplay, I can learn the names, I do not fake the experience."
+            ]
+          }
+        ]
+      },
+      {
+        "id": "api",
+        "title": "API",
+        "items": [
+          {
+            "id": "rest-what",
+            "q": "What is REST / an API?",
+            "a": [
+              "API is a contract: the client sends HTTP, the server answers JSON (often). REST uses URLs for resources and HTTP methods for actions.",
+              "I test status, headers, body, and side effects in DB if I have access."
+            ],
+            "code": "GET    /accounts      read list\nPOST   /accounts      create\nGET    /accounts/1    read one\nPUT    /accounts/1    replace all fields\nPATCH  /accounts/1    change some fields\nDELETE /accounts/1    remove"
+          },
+          {
+            "id": "http-methods",
+            "q": "GET, POST, PUT, PATCH, DELETE, HEAD, OPTIONS",
+            "a": [
+              "GET reads. It should not change data. POST creates or starts an action. DELETE removes.",
+              "HEAD is like GET without a body. OPTIONS asks which methods are allowed. I can name them. I use GET/POST/PUT/PATCH/DELETE every week."
+            ]
+          },
+          {
+            "id": "put-patch",
+            "q": "PUT vs PATCH",
+            "a": [
+              "PUT replace: I send the whole resource. Missing fields may become empty, depends on the API.",
+              "PATCH update: I send only fields to change. After both I check status and body."
+            ]
+          },
+          {
+            "id": "status-codes",
+            "q": "Status codes I actually use",
+            "a": [
+              "2xx success: 200 OK, 201 created, 204 no body. 4xx my request is wrong: 400 validation, 401 no auth, 403 forbidden, 404 not found, 409 conflict.",
+              "5xx server error. I always assert the code, not only that the call did not throw."
+            ]
+          },
+          {
+            "id": "api-auth",
+            "q": "401 vs 403, token vs cookie",
+            "a": [
+              "401 Unauthorized: no valid auth. I am not in. 403 Forbidden: I am in, but this action is not allowed.",
+              "Token often goes in header Authorization: Bearer .... Cookie session lives in Cookie. I do not mix them in one test without a reason."
+            ],
+            "code": "Authorization: Bearer <token>\nCookie: session=..."
+          },
+          {
+            "id": "headers",
+            "q": "What are HTTP headers?",
+            "a": [
+              "Headers are metadata of the request or response: Content-Type, Authorization, Set-Cookie.",
+              "I check Content-Type is JSON when I expect JSON. I check the token is sent."
+            ]
+          },
+          {
+            "id": "json-schema",
+            "q": "Status vs JSON schema",
+            "a": [
+              "Schema means the shape of JSON: required keys and types. Status 200 is not enough if id is missing.",
+              "I did this in Postman. In code people often use Ajv. I do not claim Ajv as my daily work tool."
+            ],
+            "code": "{\n  \"required\": [\"id\", \"status\"],\n  \"properties\": {\n    \"id\": { \"type\": \"string\" },\n    \"status\": { \"type\": \"string\" }\n  }\n}"
+          },
+          {
+            "id": "idempotent",
+            "q": "What is idempotent?",
+            "a": [
+              "Idempotent means I can send the same request twice and the result stays the same. GET, PUT, DELETE should be. POST create often makes two rows.",
+              "I test double submit on pay or create if the product can duplicate."
+            ]
+          },
+          {
+            "id": "negative-api",
+            "q": "Negative API cases",
+            "a": [
+              "Negative means I send bad input on purpose: empty body, wrong token, id that does not exist.",
+              "I expect 4xx, not 500, and a clear error field if the spec has one."
+            ]
+          },
+          {
+            "id": "api-then-ui",
+            "q": "API setup then UI check",
+            "a": [
+              "I create the account with POST, then open UI and see it. Faster and more stable than clicking the whole form every time.",
+              "I still keep one UI path for the form itself."
+            ]
+          },
+          {
+            "id": "contract",
+            "q": "What is contract testing — my level",
+            "a": [
+              "A contract is an agreement: this field exists, this type. Contract tests fail when producer and consumer drift.",
+              "I check schema in Postman/Playwright. I do not claim Pact as commercial experience."
+            ]
+          },
+          {
+            "id": "api-chain",
+            "q": "Chaining requests",
+            "a": [
+              "Chain means I take id from POST and send it to GET or DELETE. I do not hardcode ids that die after a reset.",
+              "If POST fails, I stop. I do not call DELETE on undefined."
+            ],
+            "code": "const created = await request.post('/accounts', { data });\nconst id = (await created.json()).id;\nconst got = await request.get('/accounts/' + id);\nexpect(got.status()).toBe(200);"
+          }
+        ]
+      },
+      {
+        "id": "sql",
+        "title": "SQL",
+        "items": [
+          {
+            "id": "sql-what",
+            "q": "What is SQL for me as QA?",
+            "a": [
+              "SQL is the language of relational databases: tables, rows, columns. I am not a DBA. I use SQL to check data, prepare test data, and compare API vs DB.",
+              "SELECT reads. WHERE filters. JOIN connects tables."
+            ]
+          },
+          {
+            "id": "sql-where",
+            "q": "SELECT and WHERE",
+            "a": [
+              "SELECT columns FROM table. WHERE keeps rows that match. =, <>, LIKE, IN.",
+              "I never SELECT * in a check if I need two fields. I know what I assert."
+            ],
+            "code": "SELECT id, status\nFROM accounts\nWHERE holder = 'Ada Chen';"
+          },
+          {
+            "id": "sql-join",
+            "q": "INNER JOIN vs LEFT JOIN",
+            "a": [
+              "JOIN connects tables on a key. INNER JOIN keeps rows that match in both tables.",
+              "LEFT JOIN keeps all rows from the left table. If there is no match, right columns are NULL. I use LEFT when I need accounts even without a transfer."
+            ],
+            "code": "accounts a\nINNER JOIN transfers t ON t.from_id = a.id\n  → only accounts that sent money\n\naccounts a\nLEFT JOIN transfers t ON t.from_id = a.id\n  → all accounts, transfer columns may be NULL"
+          },
+          {
+            "id": "sql-group",
+            "q": "GROUP BY and HAVING",
+            "a": [
+              "GROUP BY buckets rows. COUNT, SUM, AVG run per bucket.",
+              "HAVING filters after the group. WHERE filters before. Example: statuses with more than 10 rows."
+            ],
+            "code": "SELECT status, COUNT(*) AS n\nFROM accounts\nGROUP BY status\nHAVING COUNT(*) > 10;"
+          },
+          {
+            "id": "sql-null",
+            "q": "What is NULL?",
+            "a": [
+              "NULL means unknown / empty. NULL = NULL is not true. I use IS NULL or IS NOT NULL.",
+              "When I compare API and DB I remember: empty string is not NULL."
+            ]
+          },
+          {
+            "id": "sql-api",
+            "q": "API vs database check",
+            "a": [
+              "After POST I SELECT the row. If UI shows 100 and DB has 90, the bug is not only the button.",
+              "I map types: money, dates, status enums. I do not compare raw strings blindly."
+            ]
+          },
+          {
+            "id": "sql-index",
+            "q": "What is an index — QA view",
+            "a": [
+              "An index is a lookup structure. It makes WHERE faster. I do not design indexes.",
+              "If a report query is slow, I can mention missing index to a developer. I am not a DBA."
+            ]
+          },
+          {
+            "id": "sql-inject",
+            "q": "SQL injection — my level",
+            "a": [
+              "SQL injection is when user input becomes part of a query and changes it. Parameterized queries prevent it.",
+              "I am not a security tester. I can try a quote in a search field as a negative case. I do not claim a pentest."
+            ]
+          }
+        ]
+      },
+      {
+        "id": "process",
+        "title": "Process",
+        "items": [
+          {
+            "id": "intro-timeline",
+            "q": "Which story belongs to which job",
+            "a": [
+              "RIA.com: only QA. Manual first. Then Java, Selenium, REST Assured. SQL and DB. Notifications from the database for managers.",
+              "Clear Junction: FinTech, Access and Identity. Python, pytest, Selenium, Docker. Later Playwright. I am not a payment-provider expert.",
+              "FRACTAL: first QA. Process, docs, regression, then Playwright UI plus API and Jenkins."
+            ]
+          },
+          {
+            "id": "strategy-plan",
+            "q": "Test strategy vs test plan",
+            "a": [
+              "Strategy answers how we test: levels, tools, risks, what is in CI. Plan is closer to a concrete run: scope of this release, who, when.",
+              "On a new project I start with strategy: critical flows, API+UI, Jenkins. Then a shorter plan per sprint."
+            ]
+          },
+          {
+            "id": "shift-left",
+            "q": "What is shift-left?",
+            "a": [
+              "Shift-left means QA looks at the work earlier: comments on the ticket before code, examples, risks.",
+              "I did this: the ticket went to QA before development. Bad requirements did not wait until the end."
+            ]
+          },
+          {
+            "id": "risk-based",
+            "q": "Risk-based testing",
+            "a": [
+              "I spend more time where a fail is expensive: money, access, data. Payments, roles, freeze — more cases, more negatives.",
+              "A static page in one language gets smoke, not 40 UI tests."
+            ]
+          },
+          {
+            "id": "test-design",
+            "q": "EP, BVA, pairwise",
+            "a": [
+              "EP = equivalence partition: one value stands for a group. BVA = boundary: 0, 1, max. Pairwise = every pair of parameters, not the full matrix.",
+              "Pairwise cuts the count and still hits combinations. I used pairwise-online for that."
+            ]
+          },
+          {
+            "id": "coverage",
+            "q": "How I track automation coverage",
+            "a": [
+              "I do not have a TMS number I can prove. I track critical flows in CI versus still manual versus too unstable to automate.",
+              "I should not say 90% if I cannot show how I counted."
+            ]
+          },
+          {
+            "id": "not-automate",
+            "q": "What I do not automate",
+            "a": [
+              "I skip a flow that changes every week, a one-time check, and a case I cannot assert in CI.",
+              "Exploratory and the first look at a new screen stay manual first."
+            ]
+          },
+          {
+            "id": "flaky",
+            "q": "What is a flaky test and what I do",
+            "a": [
+              "Flaky means pass and fail without a product change. Causes: wait, shared data, time, parallel.",
+              "I quarantine or skip only while I fix. I look at trace, network, isolation. Hard wait is not the first fix."
+            ]
+          },
+          {
+            "id": "rca",
+            "q": "How I look for root cause",
+            "a": [
+              "RCA means root cause analysis. I reproduce. Then logs, DevTools network, API body, DB.",
+              "I want the cause, not only a bug report. I ask a developer if I am stuck."
+            ]
+          },
+          {
+            "id": "first-qa",
+            "q": "First QA on a project",
+            "a": [
+              "No process: I learn the product and docs, find the critical user flow, write the happy path, then negatives.",
+              "Then regression list, then automation and CI. Then a second QA can take manual while I stay on automation. This is FRACTAL."
+            ]
+          }
+        ]
+      }
+    ]
+  },
   "featured": {
     "title": "IT lecture notes",
     "lead": "My public conspect for interviews and study. Networking, QA/Playwright, Git/Jenkins, SQL/API, Java/JS. Also notes on Docker, Kubernetes and RabbitMQ.",
@@ -78,7 +1043,7 @@
     {
       "title": "What I am learning now",
       "paragraphs": [
-        "Interview prep around Playwright: fixtures, storageState, APIRequest, locators that stay stable, why a test is flaky.",
+        "Interview prep is split by topic: JavaScript, Git, CI, Playwright, frameworks, patterns, API, SQL, process.",
         "How to explain a framework and Jenkins jobs (merge request, branch, nightly) in a clear way.",
         "Spoken English for work answers. My level is Upper-Intermediate. I say that honestly.",
         "SQL and API checks for defect investigation."

@@ -21,8 +21,973 @@
     "commandK": "⌘K"
   },
   "title": "Конспект",
-  "intro": "Тут короткі нотатки до співбесіди. Повний конспект — на GitHub: 38 розділів, глосарій, шляхи навчання.",
+  "intro": "Тут короткі нотатки до співбесіди. База знань розбита по темах, щоб рости без полотна. Повний конспект — на GitHub.",
   "qaCta": "До банку Q&A",
+  "prep": {
+    "id": "interview-prep",
+    "title": "Готуюсь до співбесід",
+    "lead": "Близько 100 spoken-карток під senior AQA: JavaScript, Git, CI, Playwright, фреймворки, паттерни, API, SQL, процес. Фільтр теми, одне питання. У відповіді спочатку що означає слово, потім що з цим роблю. Код і короткі схеми, де треба. Нова картка: prep.groups[].items у notes-uk.json і notes-en.json, той самий id.",
+    "allLabel": "Усі теми",
+    "searchPlaceholder": "Пошук картки",
+    "emptyFilter": "У цій темі порожньо.",
+    "groups": [
+      {
+        "id": "js",
+        "title": "JavaScript",
+        "items": [
+          {
+            "id": "event-loop",
+            "q": "Що таке event loop?",
+            "a": [
+              "Event loop — черга JavaScript. Код у твоєму скрипті йде в одному потоці: одночасно виконується одна штука.",
+              "Порядок: спочатку весь sync. Потім microtasks (Promise.then, queueMicrotask, код після await). Потім macrotasks (setTimeout, setInterval). Далі коло.",
+              "setTimeout(fn, 0) все одно в кінці. Event loop — це не while."
+            ],
+            "code": "console.log(1);\nsetTimeout(() => console.log(2), 0);\nPromise.resolve().then(() => console.log(3));\nconsole.log(4);\n// 1, 4, 3, 2\n\nsync → microtask (Promise) → macrotask (timeout)"
+          },
+          {
+            "id": "clone",
+            "q": "Shallow copy vs deep copy об’єкта",
+            "a": [
+              "Copy — новий об’єкт. Shallow copy копіює лише перший рівень. Вкладені об’єкти лишаються тим самим посиланням. Змінив nested.name — бачать обидва.",
+              "Shallow: { ...user } або Object.assign({}, user). Deep copy копіює все дерево. Беру structuredClone(user). JSON.parse(JSON.stringify(user)) теж копіює вкладене, але ріже функції, Date стає рядком, undefined зникає."
+            ],
+            "code": "const user = { name: 'Ada', nested: { n: 1 } };\nconst shallow = { ...user };\nshallow.nested.n = 2;\nconsole.log(user.nested.n); // 2  same nested object\n\nconst deep = structuredClone(user);\ndeep.nested.n = 9;\nconsole.log(user.nested.n); // 2  independent tree"
+          },
+          {
+            "id": "js-async",
+            "q": "Promise vs async/await",
+            "a": [
+              "Promise — об’єкт значення, яке прийде пізніше: pending, fulfilled або rejected. .then() — успіх. .catch() — помилка.",
+              "async/await — той самий Promise зручнішим синтаксисом. await чекає. try/catch ловить помилку. У Playwright майже кожен крок async. Завжди await на click, expect і API."
+            ],
+            "code": "async function loadUser(request) {\n  try {\n    const res = await request.get('/api/v1/me');\n    return res.json();\n  } catch (err) {\n    throw err;\n  }\n}"
+          },
+          {
+            "id": "js-closure",
+            "q": "Що таке closure?",
+            "a": [
+              "Closure — функція, яка пам’ятає змінні з місця, де її створили, навіть коли зовнішня функція вже закінчилась.",
+              "У тестах це маленька фабрика: функція повертає хелпери, які все ще знають baseURL або userId."
+            ],
+            "code": "function api(baseURL) {\n  return {\n    users: () => fetch(baseURL + '/users'),\n  };\n}\nconst client = api('https://example.test');\n// client.users still knows baseURL"
+          },
+          {
+            "id": "js-array",
+            "q": "map, filter, reduce",
+            "a": [
+              "Це методи масиву. Оригінал не змінюють. Повертають нове значення.",
+              "filter лишає елементи, які пройшли перевірку. map перетворює кожен елемент. reduce проходить список і збирає одне значення, наприклад лічильник.",
+              "Live coding для QA часто такий: лишити впалі тести, унікальні email, порахувати статуси."
+            ],
+            "code": "const runs = [\n  { name: 'login', ok: true },\n  { name: 'pay', ok: false },\n];\nconst failed = runs.filter((t) => !t.ok);\nconst names = runs.map((t) => t.name);\nconst failCount = runs.reduce((n, t) => n + (t.ok ? 0 : 1), 0);"
+          },
+          {
+            "id": "js-equal",
+            "q": "== vs ===",
+            "a": [
+              "=== — суворе порівняння. Те саме значення і той самий тип. 1 === '1' — false.",
+              "== — нестроге. Воно приводить типи. 1 == '1' — true. У тестах ставлю ===, також у Playwright expect."
+            ],
+            "code": "1 === '1'  // false\n1 == '1'   // true\nnull == undefined  // true\nnull === undefined // false"
+          },
+          {
+            "id": "js-this",
+            "q": "Що таке this?",
+            "a": [
+              "this — об’єкт, на якому зараз викликали метод. У звичайній функції this залежить від виклику. У стрілковій функції this береться ззовні. Стрілка свій this не створює.",
+              "У Playwright this рідко потрібен. У page-класі this.page — сторінка цього об’єкта."
+            ],
+            "code": "class LoginPage {\n  constructor(page) { this.page = page; }\n  async open() { await this.page.goto('/login'); }\n}"
+          },
+          {
+            "id": "js-scope",
+            "q": "var vs let vs const",
+            "a": [
+              "Scope — де ім’я видно. var — на всю функцію і може читатись до рядка (hoisting). let і const — у блоці { }.",
+              "const не можна присвоїти заново. Об’єкт усередині змінювати можна. Беру const за замовчуванням, let якщо значення змінюється, var майже не пишу."
+            ],
+            "code": "if (true) {\n  let x = 1;\n  const y = 2;\n}\n// x and y are not visible here"
+          },
+          {
+            "id": "js-truthy",
+            "q": "Truthy, falsy, null, undefined",
+            "a": [
+              "Falsy: false, 0, '', null, undefined, NaN. Решта — truthy.",
+              "undefined — значення не задали. null — порожньо навмисно. Перевіряю res.body == null, якщо API може нічого не віддати."
+            ]
+          },
+          {
+            "id": "js-optional",
+            "q": "Optional chaining і ??",
+            "a": [
+              "user?.email читає email, лише якщо user не null і не undefined. Якщо user немає — undefined, без падіння.",
+              "?? бере праву частину, лише якщо ліва null або undefined. 0 ?? 10 це 0. '' || 'x' стало б 'x'. Для нулів беру ??."
+            ],
+            "code": "const email = user?.profile?.email ?? 'unknown';"
+          },
+          {
+            "id": "js-json",
+            "q": "JSON.parse і JSON.stringify",
+            "a": [
+              "JSON — текстовий формат даних. stringify робить з об’єкта рядок. parse робить з рядка об’єкт.",
+              "Так серіалізую тіло API і логи. Це не ідеальний deep clone: функції й undefined зникають."
+            ],
+            "code": "const body = JSON.stringify({ email: 'ada@test' });\nconst data = JSON.parse(body);"
+          },
+          {
+            "id": "js-promise-all",
+            "q": "Promise.all vs await у циклі",
+            "a": [
+              "await у циклі чекає по одному. Повільно, якщо запити незалежні.",
+              "Promise.all запускає разом і чекає всіх. Якщо один впав — падають усі. Для незалежних GET беру Promise.all."
+            ],
+            "code": "const [a, b] = await Promise.all([\n  request.get('/users'),\n  request.get('/accounts'),\n]);"
+          },
+          {
+            "id": "js-error",
+            "q": "Як обробляю помилки в async-тестах",
+            "a": [
+              "try/catch навколо await. Playwright expect і так кине, якщо assert не пройшов. Помилку не ковтаю.",
+              "Для API спочатку статус, потім тіло. Якщо тест має впасти — хай впаде з зрозумілим повідомленням."
+            ]
+          },
+          {
+            "id": "js-types",
+            "q": "typeof і Array.isArray",
+            "a": [
+              "typeof каже примітив: string, number, boolean, undefined, function, object. typeof null це 'object'. Це дивина JS.",
+              "Для списків — Array.isArray(x). Так перевіряю тіло API: чи items масив."
+            ],
+            "code": "Array.isArray(body.items)  // true for []\ntypeof null                 // 'object'"
+          }
+        ]
+      },
+      {
+        "id": "git",
+        "title": "Git",
+        "items": [
+          {
+            "id": "git-en",
+            "q": "merge, rebase, fetch, pull, push — що означає кожне слово",
+            "a": [
+              "Git зберігає версії файлів комітами. Commit — знімок із повідомленням. Branch — рухомий вказівник на коміт. remote — копія на сервері (origin). origin/main — main на сервері.",
+              "merge = з’єднати дві гілки. Git додає merge-коміт з двома батьками. Історія як була.",
+              "rebase = взяти мої коміти і накласти їх поверх іншої гілки. Історія рівна. Shared main не ребейзю.",
+              "fetch = завантажити нові коміти з remote. Мої файли не змінюються.",
+              "pull = fetch, а тоді merge (або rebase) у мою гілку. Файли оновлюються.",
+              "push = відправити локальні коміти на remote, щоб команда їх бачила."
+            ],
+            "code": "remote origin/main\n    fetch ↓          ↑ push\nlocal main / feature\n\npull  = fetch + merge (or rebase)\nmerge = extra merge commit, two parents\nrebase = replay my commits on top, straight line"
+          },
+          {
+            "id": "git-branch",
+            "q": "Що таке branch і як з нею працюю",
+            "a": [
+              "Branch — ім’я, яке вказує на коміт. git switch -c feat/login створює нову гілку від поточного коміта.",
+              "Фічу роблю від оновленого main. У командній роботі в main напряму не комічу."
+            ],
+            "code": "git fetch origin\ngit switch main\ngit pull\ngit switch -c feat/login"
+          },
+          {
+            "id": "git-commit",
+            "q": "Що таке commit?",
+            "a": [
+              "Commit — збережений знімок: файли + автор + повідомлення + батько. git add додає в staging. git commit -m '...' зберігає знімок.",
+              "Нормальне повідомлення каже навіщо, не лише що змінилось. Секрети в коміт не кладу."
+            ]
+          },
+          {
+            "id": "git-conflict",
+            "q": "Що таке merge conflict?",
+            "a": [
+              "Conflict — два коміти змінили ті самі рядки. Git не вміє вибрати. Відкриваю файл, лишаю правильний код, git add, далі merge --continue або rebase --continue.",
+              "Читаю локатори й тести. Не тисну accept all incoming."
+            ],
+            "code": "<<<<<<< HEAD\ngetByTestId('save')\n=======\ngetByRole('button', { name: 'Save' })\n>>>>>>> feat/login"
+          },
+          {
+            "id": "git-force",
+            "q": "Що таке force push?",
+            "a": [
+              "git push --force перезаписує гілку на remote. Старі коміти на сервері для інших можуть зникнути.",
+              "На main force не роблю. Якщо треба переписати свою гілку — --force-with-lease. Впаде, якщо хтось уже запушив."
+            ]
+          },
+          {
+            "id": "git-stash",
+            "q": "Що таке git stash?",
+            "a": [
+              "stash — відкласти незавершені зміни на полицю. Робоча папка стає чистою. Тоді можу змінити гілку.",
+              "git stash push -u зберігає. git stash pop повертає. Користуюсь, лише коли треба швидко змінити гілку."
+            ]
+          },
+          {
+            "id": "git-cherry",
+            "q": "Що таке cherry-pick?",
+            "a": [
+              "cherry-pick копіює один коміт на поточну гілку. Всю іншу гілку не тягне.",
+              "Так забираю hot-fix коміт у main без решти фічі."
+            ],
+            "code": "git cherry-pick abc1234"
+          },
+          {
+            "id": "git-undo",
+            "q": "reset vs revert",
+            "a": [
+              "git revert робить новий коміт, який відміняє старий. Історія лишається. Так безпечно на спільному main.",
+              "git reset рухає вказівник гілки. --hard ще й викидає файли. Reset лише на своїй локальній гілці, яку ніхто не пулив."
+            ]
+          },
+          {
+            "id": "git-pr",
+            "q": "Що таке pull request?",
+            "a": [
+              "Pull request (PR) — запит влити мою гілку в іншу, зазвичай main. Дивляться diff. CI ганяє тести.",
+              "Не мерджу, якщо CI червоний. Відповідаю на коментарі. Далі squash або merge, як домовились у команді."
+            ]
+          },
+          {
+            "id": "git-ignore",
+            "q": "Що таке .gitignore?",
+            "a": [
+              ".gitignore — список файлів, які Git не трекає: node_modules, репорти, .env. Секрети в репо не кладу.",
+              "Якщо файл уже закомічений, одного gitignore мало. Треба прибрати його з індексу."
+            ],
+            "code": "node_modules/\ntest-results/\nplaywright-report/\n.env"
+          }
+        ]
+      },
+      {
+        "id": "ci",
+        "title": "CI",
+        "items": [
+          {
+            "id": "ci-what",
+            "q": "Що таке CI/CD?",
+            "a": [
+              "CI — Continuous Integration. Кожен push або PR сам запускає перевірки: install, тести, інколи лінт. Команда бачить червоне або зелене.",
+              "CD — Continuous Delivery або Deploy. Після зеленого CI збірка може піти в середовище. Прод-деплоєм я не володію. Моя зона — джоба тестів у пайплайні."
+            ],
+            "code": "push / PR\n  → checkout\n  → install deps\n  → lint / tsc  (quality gate)\n  → tests\n  → report + notify\n  → merge only if green"
+          },
+          {
+            "id": "quality-gate",
+            "q": "Що таке quality gate?",
+            "a": [
+              "Quality gate — обов’язкова перевірка в CI. Якщо тести або лінт падають, не мерджимо. Це правило, не відчуття якості продукту.",
+              "На останньому проєкті: тести на PR у main і nightly. Червоний PR — без мерджу."
+            ]
+          },
+          {
+            "id": "ci-jenkinsfile",
+            "q": "Що таке Jenkinsfile?",
+            "a": [
+              "Jenkins — CI-сервер. Jenkinsfile — текстовий файл у репо, який описує пайплайн: stages і steps.",
+              "Типові stages для тестів: checkout (взяти код), install, тести, репорт, нотифікація. Цей флоу пояснюю. Кластером Jenkins не володів."
+            ],
+            "code": "pipeline {\n  stages {\n    stage('Checkout') { steps { checkout scm } }\n    stage('Install')  { steps { sh 'npm ci' } }\n    stage('Test')     { steps { sh 'npx playwright test' } }\n    stage('Report')   { steps { archiveArtifacts 'playwright-report/**' } }\n  }\n}"
+          },
+          {
+            "id": "ci-gha",
+            "q": "GitHub Actions за хвилину",
+            "a": [
+              "GitHub Actions — CI всередині GitHub. Workflow — YAML у .github/workflows. Job — запуск на машині. Step — одна команда.",
+              "GitHub Actions використав для публічного Playwright-сьюту. На роботі також був Jenkins. GitLab CI як сильну комерційну навичку не тягну."
+            ],
+            "code": "on: [pull_request]\njobs:\n  test:\n    runs-on: ubuntu-latest\n    steps:\n      - uses: actions/checkout@v4\n      - uses: actions/setup-node@v4\n      - run: npm ci\n      - run: npx playwright install --with-deps\n      - run: npx playwright test"
+          },
+          {
+            "id": "static-analysis",
+            "q": "Що таке static analysis?",
+            "a": [
+              "Static analysis читає код без запуску тестів. ESLint шукає стиль і типові баги. tsc перевіряє типи TypeScript. Sonar — платформа в деяких командах.",
+              "Cursor — не static analysis. Cursor щодня, але diff читаю. Sonar як гейт на роботі не ганяв."
+            ]
+          },
+          {
+            "id": "ci-local",
+            "q": "Локально зелені, у CI падають",
+            "a": [
+              "Порівнюю env, тестові дані, часовий пояс, версію браузера, workers. Локально часто один worker і старі cookies.",
+              "Відкриваю CI trace або відео. Не починаю з waitForTimeout."
+            ]
+          },
+          {
+            "id": "ci-report",
+            "q": "Що таке artifact / репорт?",
+            "a": [
+              "Artifact — файл, який CI зберігає після джоби: HTML-репорт, trace, скрін, відео. Без нього червоний білд не розібрати.",
+              "Використовував Playwright HTML і Allure. Репорт для команди, не лише для мене."
+            ]
+          },
+          {
+            "id": "ci-retry",
+            "q": "Що таке retries у CI?",
+            "a": [
+              "Retry — CI ще раз ганяє впалий тест. Це може сховати flake. У CI ставлю 1–2, локально 0, щоб проблему бачити.",
+              "Якщо тест завжди живе лише з retry — він не зелений. Все одно відкриваю trace і правля wait або дані."
+            ]
+          },
+          {
+            "id": "ci-shard",
+            "q": "Що таке sharding?",
+            "a": [
+              "Sharding ділить сьют на кілька машин. --shard=1/3 ганяє першу третину файлів. Три джоби швидші за одну довгу.",
+              "Ідею знаю. Частіше мав parallel workers на одній машині, ніж багато шардів."
+            ],
+            "code": "npx playwright test --shard=1/3"
+          },
+          {
+            "id": "ci-secrets",
+            "q": "Як CI тримає секрети",
+            "a": [
+              "Secret — пароль або токен. Живе в Jenkins credentials або GitHub Secrets, не в git.",
+              "Тести читають з env. Токен у лог не друкую."
+            ]
+          },
+          {
+            "id": "ci-npm",
+            "q": "npm install vs npm ci",
+            "a": [
+              "npm ci ставить точні версії з package-lock.json. Це для CI. Чисто і повторювано.",
+              "npm install може змінити lock. У пайплайні ставлю npm ci."
+            ]
+          },
+          {
+            "id": "ci-nightly",
+            "q": "Джоба на PR vs nightly",
+            "a": [
+              "PR-джоба коротка: smoke або швидкий набір, щоб рев’ю не стояло годину.",
+              "Nightly — повний сьют, коли ніхто не чекає. Обидва — CI. Гейт на мердж — PR-джоба."
+            ]
+          }
+        ]
+      },
+      {
+        "id": "playwright",
+        "title": "Playwright",
+        "items": [
+          {
+            "id": "pw-what",
+            "q": "Що таке Playwright?",
+            "a": [
+              "Playwright — інструмент керувати справжнім браузером з коду. Тести пишу TypeScript. Браузери: Chromium, Firefox, WebKit.",
+              "Є свій runner: fixtures, locators, auto-wait, trace, APIRequest. Це мій основний стек зараз."
+            ]
+          },
+          {
+            "id": "pw-vs-selenium",
+            "q": "Playwright vs Selenium",
+            "a": [
+              "Selenium говорить з браузером через WebDriver. Java + Selenium були на RIA.com. Часто треба свої wait.",
+              "Playwright ближче до браузера і сам чекає actionability. Для нового UI зараз беру Playwright. Selenium-код читати вмію."
+            ]
+          },
+          {
+            "id": "pw-browser-context-page",
+            "q": "browser vs context vs page",
+            "a": [
+              "browser — процес браузера (Chrome). context — ізольований профіль, як інкогніто: свої cookies і storage.",
+              "page — одна вкладка в context. Parallel тести не ділять одну page. За замовчуванням Playwright дає свіжі context/page на тест."
+            ],
+            "code": "browser\n  └─ context (cookies, storageState)\n       └─ page (tab)\n            └─ frame / locator"
+          },
+          {
+            "id": "pw-locator",
+            "q": "Що таке Locator?",
+            "a": [
+              "Locator — рецепт, як знайти елемент. У момент створення вузол не хапає. На кожен click шукає знову. Тому живе після re-render.",
+              "ElementHandle — знімок одного вузла. Він застаріває. Беру locators, не page.$()."
+            ],
+            "code": "await page.getByRole('button', { name: 'Save' }).click();"
+          },
+          {
+            "id": "pw-locators",
+            "q": "Які локатори ставлю",
+            "a": [
+              "Порядок: getByRole, getByLabel, getByPlaceholder, getByTestId. Role — доступне ім’я, яке бачить юзер і скрінрідер.",
+              "Довгий CSS і nth(3) ламаються, коли верстка пливе. data-testid — для автотестів. Все одно дивлюсь, що він б’є в справжній контрол."
+            ],
+            "code": "await page.getByRole('textbox', { name: 'Email' }).fill(email);\nawait page.getByTestId('login-submit').click();"
+          },
+          {
+            "id": "pw-strict",
+            "q": "Що таке strict mode?",
+            "a": [
+              "Якщо локатор знайшов більше одного вузла — Playwright кине помилку. Це strict mode. Так і треба: локатор має бути унікальним.",
+              "Вужу .filter({ hasText }) або ім’ям getByRole. .first() не маскую проблему, якщо не можу пояснити навіщо."
+            ]
+          },
+          {
+            "id": "pw-autowait",
+            "q": "Auto-wait vs waitForTimeout",
+            "a": [
+              "Auto-wait: Playwright повторює дію, поки елемент actionable — visible, enabled, stable — або до timeout.",
+              "waitForTimeout(5000) — sleep. CI стає повільним і flaky. Чекаю локатор або waitForResponse."
+            ]
+          },
+          {
+            "id": "pw-expect",
+            "q": "Web-first assertions",
+            "a": [
+              "expect(locator).toBeVisible() повторює перевірку до true або timeout. Це не один постріл.",
+              "Асертаю результат для юзера: кнопка, текст, URL. Не лише те, що click() не кинув."
+            ],
+            "code": "await expect(page.getByRole('heading', { name: 'Accounts' })).toBeVisible();"
+          },
+          {
+            "id": "pw-fixtures",
+            "q": "Що таке fixture?",
+            "a": [
+              "Fixture — сетап і teardown, який тест просить на ім’я. Вбудовані: page, context, browser, request.",
+              "Свої — через test.extend. storageState — не назва built-in fixture. Зберігаю після API-логіну і перевикористовую."
+            ],
+            "code": "export const test = base.extend({\n  shopPage: async ({ page }, use) => {\n    await use(new ShopPage(page));\n  },\n});"
+          },
+          {
+            "id": "pw-scope",
+            "q": "test vs worker scope у fixture",
+            "a": [
+              "test scope: нове значення на кожен тест. Так працює page. Ізоляція.",
+              "worker scope: одне значення на багато тестів воркера. Ок для важкого login-файлу. Спільну page у worker не кладу."
+            ]
+          },
+          {
+            "id": "pw-storage",
+            "q": "Що таке storageState?",
+            "a": [
+              "storageState — JSON cookies і localStorage. Після логіну зберігаю. Наступні тести стартують уже залогіненими.",
+              "Логін частіше через API, тоді save storageState. Окремий UI-тест все одно перевіряє форму логіну."
+            ],
+            "code": "await request.post('/api/v1/auth/login', { data: { email, password } });\nawait page.context().storageState({ path: 'playwright/.auth/user.json' });"
+          },
+          {
+            "id": "pw-api",
+            "q": "APIRequest у Playwright",
+            "a": [
+              "APIRequestContext шле HTTP без браузера. Fixture request — цей клієнт.",
+              "Для сетапу, teardown і API-перевірок. UI не клікає логін, якщо сесію можна взяти з API.",
+              "У петі Northgate Console REST у браузері йде через Service Worker. Там page.waitForResponse, не Playwright request."
+            ],
+            "code": "const res = await request.get('/api/v1/accounts');\nexpect(res.status()).toBe(200);\nconst body = await res.json();"
+          },
+          {
+            "id": "pw-route",
+            "q": "Що таке page.route?",
+            "a": [
+              "page.route перехоплює мережевий виклик у браузері. Можу віддати JSON або навмисно впасти.",
+              "Мокаю, коли сервіс повільний або потрібен рідкісний error. Happy path моком не замінюю, якщо є тестове API."
+            ],
+            "code": "await page.route('**/api/v1/accounts', (route) =>\n  route.fulfill({ json: { items: [] } }),\n);"
+          },
+          {
+            "id": "pw-wait-res",
+            "q": "waitForResponse vs waitForTimeout",
+            "a": [
+              "waitForResponse вішаю до кліку. Потім клік. Потім статус. Інакше виклик встигне закінчитись до слухача.",
+              "Так ловив 401 або 200 у UI-флоу."
+            ],
+            "code": "const wait = page.waitForResponse('**/api/v1/accounts');\nawait page.getByTestId('refresh').click();\nexpect((await wait).status()).toBe(200);"
+          },
+          {
+            "id": "pw-trace",
+            "q": "Trace, screenshot, video",
+            "a": [
+              "Trace — запис тесту: DOM, network, кроки. Дивлюсь у Trace Viewer.",
+              "На фейлі — таймлайн, не лише лог. Screenshot і video — додаткові артефакти в CI."
+            ]
+          },
+          {
+            "id": "pw-iframe",
+            "q": "Frames і нові вкладки",
+            "a": [
+              "Frame — сторінка в сторінці (iframe). Беру page.frameLocator('iframe').getByRole(...).",
+              "Нова вкладка — інший page. Чекаю popup через context.waitForEvent('page'), далі працюю з тим page."
+            ]
+          },
+          {
+            "id": "pw-config",
+            "q": "Що таке playwright.config.ts?",
+            "a": [
+              "Це конфіг runner: baseURL, браузери (projects), retries, workers, reporter, timeout.",
+              "CI і локалка можуть відрізнятись: у CI більше retries, локально один worker на дебаг."
+            ]
+          },
+          {
+            "id": "pw-parallel",
+            "q": "Workers і ізоляція",
+            "a": [
+              "Worker — паралельний процес. Кілька тестів ідуть одночасно. Кожен тест має мати свого юзера або дані.",
+              "Якщо два тести правлять один акаунт — flake. Для parallel брав різні акаунти."
+            ]
+          },
+          {
+            "id": "pw-grep",
+            "q": "Як ганяю частину тестів",
+            "a": [
+              "Теги в назві: @smoke @api. Далі npx playwright test --grep @smoke.",
+              "Так PR-джоба лишається короткою, nightly — повною."
+            ]
+          },
+          {
+            "id": "pw-codegen",
+            "q": "Codegen і тести з AI",
+            "a": [
+              "playwright codegen записує кліки. Cursor може накидати тест. Сліпо не мерджу.",
+              "Переписую локатори, wait і assert. Тест мій. AI — драфт."
+            ]
+          }
+        ]
+      },
+      {
+        "id": "framework",
+        "title": "Фреймворки",
+        "items": [
+          {
+            "id": "fw-structure",
+            "q": "Як розкладаю тестовий проєкт",
+            "a": [
+              "Framework — папки + правила, не лише Playwright. Тест читається як флоу. Деталі — у pages, fixtures, utils.",
+              "Типово: pages/, fixtures/, tests/ui, tests/api, utils/, playwright.config.ts. Конфіг CI поруч із тестами."
+            ],
+            "code": "tests/\n  ui/\n  api/\npages/\nfixtures/\nutils/\nplaywright.config.ts"
+          },
+          {
+            "id": "fw-data",
+            "q": "Тестові дані й env",
+            "a": [
+              "Env — змінні середовища: baseURL, паролі. Живуть у .env або CI secrets, не в git.",
+              "Factory — функція, яка збирає юзера або акаунт. Той самий JSON у п’ять тестів не копіюю."
+            ],
+            "code": "function makeUser() {\n  return { email: `qa+${Date.now()}@test`, role: 'Member' };\n}"
+          },
+          {
+            "id": "fw-stacks",
+            "q": "Playwright vs pytest vs Selenium у кар’єрі",
+            "a": [
+              "Зараз веду TypeScript і Playwright. RIA.com: Java, Selenium, REST Assured. Clear Junction: Python, pytest, Selenium, Docker, пізніше Playwright.",
+              "Якщо вакансія Python/pytest — починаю з Clear Junction. Не кажу, що pytest — мій щоденний стек зараз."
+            ]
+          },
+          {
+            "id": "fw-ts",
+            "q": "Навіщо TypeScript у тестах",
+            "a": [
+              "TypeScript додає типи поверх JavaScript. Редактор і tsc ловлять зайве поле до CI.",
+              "У Playwright типи вже є. Пишу прості типи, не хитрі generics."
+            ]
+          },
+          {
+            "id": "fw-independent",
+            "q": "Чому тести мають бути незалежні",
+            "a": [
+              "Independent — тесту B не потрібен тест A. Можу ганяти один файл. Parallel не ламає дані.",
+              "Спільний юзер, якого всі правлять — типовий баг. Дані створюю в beforeEach або через API, або різні юзери."
+            ]
+          },
+          {
+            "id": "fw-tags",
+            "q": "Теги й сьюті",
+            "a": [
+              "Tag — мітка в назві: @smoke. PR-джоба ганяє smoke. Nightly — все.",
+              "200 UI-тестів на кожен PR не ставлю, якщо це 40 хвилин."
+            ]
+          },
+          {
+            "id": "fw-allure",
+            "q": "Allure vs Playwright HTML",
+            "a": [
+              "Reporter робить з результатів сторінку. Playwright HTML — вбудований. Allure — інший репорт, який хочуть команди.",
+              "Користувався обома. Цінність — групувати фейли: продукт / flake / дані."
+            ]
+          },
+          {
+            "id": "fw-review-ai",
+            "q": "Як рев’юю тести з AI",
+            "a": [
+              "Cursor швидко накидає. Читаю локатори, wait, дані й assert. Якщо assert не б’є в ризик — відкидаю.",
+              "Self-healing CSS не приймаю. Role, label, test id — моє рішення."
+            ]
+          },
+          {
+            "id": "fw-config",
+            "q": "Як живу з кількома середовищами",
+            "a": [
+              "baseURL і юзери з env: test, staging. Ті самі тести, інші дані.",
+              "https://prod у спеку не хардкоджу."
+            ],
+            "code": "const baseURL = process.env.BASE_URL;\nexpect(baseURL).toBeTruthy();"
+          },
+          {
+            "id": "fw-layer",
+            "q": "Шари UI+API фреймворку",
+            "a": [
+              "Шар тестів: спека, історія. Шар page/API: як клікаємо або кличемо. Utils: wait, дати. Config: env. Data: фабрики.",
+              "У спекі не new WebDriver і не 20 рядків fetch. Це якраз питання на senior."
+            ],
+            "code": "spec → page object / api client → http + browser\n         ↑ config + factories"
+          }
+        ]
+      },
+      {
+        "id": "patterns",
+        "title": "Паттерни",
+        "items": [
+          {
+            "id": "pom",
+            "q": "Що таке Page Object Model?",
+            "a": [
+              "POM — патерн: клас на екран (або блок). Там локатори й дії. Тест кличе login(), не fill('#x').",
+              "Коли UI зміниться — править один клас. Мінус: гігантський клас теж поганий. Тоді виношу component object."
+            ],
+            "code": "class LoginPage {\n  constructor(private page: Page) {}\n  async login(email: string, pass: string) {\n    await this.page.getByLabel('Email').fill(email);\n    await this.page.getByLabel('Password').fill(pass);\n    await this.page.getByRole('button', { name: 'Sign in' }).click();\n  }\n}"
+          },
+          {
+            "id": "aaa",
+            "q": "Arrange Act Assert",
+            "a": [
+              "AAA — патерн одного тесту. Arrange = дані і логін. Act = одна дія юзера. Assert = одна зрозуміла перевірка.",
+              "Три різні асерти в безіменному хелпері не ховаю."
+            ],
+            "code": "// Arrange\nawait loginAsAda(page);\n// Act\nawait accounts.create('Ops');\n// Assert\nawait expect(page.getByText('Ops')).toBeVisible();"
+          },
+          {
+            "id": "test-pyramid",
+            "q": "Піраміда автоматизації",
+            "a": [
+              "Піраміда — картинка обсягів. Знизу багато дешевих unit і API. Зверху мало UI. UI повільний і частіше flaky.",
+              "Автоматизую критичний UI плюс API. Не закриваю кожен клік Playwright."
+            ],
+            "code": "        UI (few, slow)\n      API / integration\n   unit (many, cheap)"
+          },
+          {
+            "id": "oop-access",
+            "q": "public, private, protected",
+            "a": [
+              "Це модифікатори доступу. Кажуть, хто бачить поле або метод.",
+              "public = тест може викликати. private = лише цей клас (локатори, хелпери). protected = цей клас і нащадок. Паролі — не private-поле. Паролі в env. У page-класах локатори краще private, дії public. Не казати, що в мене все public."
+            ]
+          },
+          {
+            "id": "waits",
+            "q": "Чекати умову, не sleep",
+            "a": [
+              "Wait по умові: поки visible, поки URL, поки 200. Sleep — просто N мс, хай що.",
+              "Sleep ховає гонки і повертається в CI."
+            ]
+          },
+          {
+            "id": "factory",
+            "q": "Фабрика тестових даних",
+            "a": [
+              "Factory збирає об’єкт з дефолтами, які можна перебити. Кожен тест може взяти унікальний email.",
+              "Краще, ніж один shared user.json, за який б’ються parallel тести."
+            ],
+            "code": "const user = makeUser({ role: 'Admin' });"
+          },
+          {
+            "id": "dry-damp",
+            "q": "DRY vs DAMP у тестах",
+            "a": [
+              "DRY — не повторюй себе. DAMP — тест має читатись. Descriptive And Meaningful Phrases.",
+              "Якщо сховати всю історію в mega-helper, тест короткий і ніхто не розуміє, що він перевіряє. Трохи повторити — ок, якщо читається."
+            ]
+          },
+          {
+            "id": "component",
+            "q": "Component / fragment object",
+            "a": [
+              "Якщо віджет на багатьох сторінках (хедер, модалка) — виношу маленький клас, не page на 800 рядків.",
+              "Та сама ідея, що POM, менший скоуп."
+            ]
+          },
+          {
+            "id": "singleton",
+            "q": "Чому не ділю одну page на всі тести",
+            "a": [
+              "Singleton-браузер на всі тести — стара звичка Selenium. Течуть cookies і порядок.",
+              "Playwright дає новий context на тест. Так і лишаю. Спочатку ізоляція."
+            ]
+          },
+          {
+            "id": "screenplay",
+            "q": "Screenplay — чи використовую?",
+            "a": [
+              "Screenplay — актори + задачі + питання. Деяким командам ок на величезних сьютах.",
+              "Комерційного Screenplay немає. Кажу POM + fixtures. Якщо в них Screenplay — вивчу назви, досвід не видумую."
+            ]
+          }
+        ]
+      },
+      {
+        "id": "api",
+        "title": "API",
+        "items": [
+          {
+            "id": "rest-what",
+            "q": "Що таке REST / API?",
+            "a": [
+              "API — контракт: клієнт шле HTTP, сервер відповідає JSON (часто). REST: URL — ресурс, HTTP-метод — дія.",
+              "Тестую статус, заголовки, тіло і побічний ефект у БД, якщо є доступ."
+            ],
+            "code": "GET    /accounts      read list\nPOST   /accounts      create\nGET    /accounts/1    read one\nPUT    /accounts/1    replace all fields\nPATCH  /accounts/1    change some fields\nDELETE /accounts/1    remove"
+          },
+          {
+            "id": "http-methods",
+            "q": "GET, POST, PUT, PATCH, DELETE, HEAD, OPTIONS",
+            "a": [
+              "GET читає. Дані не змінює. POST створює або запускає дію. DELETE видаляє.",
+              "HEAD як GET без тіла. OPTIONS питає, які методи можна. Назви знаю. Щотижня в роботі — GET/POST/PUT/PATCH/DELETE."
+            ]
+          },
+          {
+            "id": "put-patch",
+            "q": "PUT vs PATCH",
+            "a": [
+              "PUT — заміна всієї сутності. Поля, яких не надіслав, можуть обнулитись — залежить від API.",
+              "PATCH — лише поля, які змінюю. Після обох дивлюсь статус і тіло."
+            ]
+          },
+          {
+            "id": "status-codes",
+            "q": "Статуси, якими реально користуюся",
+            "a": [
+              "2xx успіх: 200 OK, 201 created, 204 без тіла. 4xx проблема запиту: 400 валідація, 401 немає авторизації, 403 заборонено, 404 немає, 409 конфлікт.",
+              "5xx помилка сервера. Завжди асертаю код, не лише те, що виклик не кинув."
+            ]
+          },
+          {
+            "id": "api-auth",
+            "q": "401 vs 403, token vs cookie",
+            "a": [
+              "401 Unauthorized: немає валідної авторизації. Мене немає в системі. 403 Forbidden: я всередині, але цю дію не можна.",
+              "Token часто в заголовку Authorization: Bearer .... Сесія в Cookie. Не змішую в одному тесті без причини."
+            ],
+            "code": "Authorization: Bearer <token>\nCookie: session=..."
+          },
+          {
+            "id": "headers",
+            "q": "Що таке HTTP-заголовки?",
+            "a": [
+              "Headers — метадані запиту або відповіді: Content-Type, Authorization, Set-Cookie.",
+              "Перевіряю, що Content-Type JSON, якщо чекаю JSON. Перевіряю, що токен пішов."
+            ]
+          },
+          {
+            "id": "json-schema",
+            "q": "Статус vs JSON schema",
+            "a": [
+              "Schema — форма JSON: обов’язкові ключі й типи. Статусу 200 мало, якщо немає id.",
+              "Так робив у Postman. У коді часто Ajv. Ajv як щоденний робочий інструмент не тягну."
+            ],
+            "code": "{\n  \"required\": [\"id\", \"status\"],\n  \"properties\": {\n    \"id\": { \"type\": \"string\" },\n    \"status\": { \"type\": \"string\" }\n  }\n}"
+          },
+          {
+            "id": "idempotent",
+            "q": "Що таке idempotent?",
+            "a": [
+              "Idempotent — той самий запит двічі, результат той самий. GET, PUT, DELETE мають такі бути. POST create часто робить два рядки.",
+              "На оплаті або create перевіряю подвійний сабміт, якщо продукт може задублювати."
+            ]
+          },
+          {
+            "id": "negative-api",
+            "q": "Негативні API-кейси",
+            "a": [
+              "Negative — навмисно погані дані: порожнє тіло, кривий токен, id якого немає.",
+              "Чекаю 4xx, не 500, і зрозуміле поле error, якщо так у спекі."
+            ]
+          },
+          {
+            "id": "api-then-ui",
+            "q": "Сетап через API, перевірка в UI",
+            "a": [
+              "Акаунт створюю POST, тоді відкриваю UI і бачу його. Швидше і стабільніше, ніж щоразу клікати всю форму.",
+              "Один UI-шлях на саму форму все одно лишаю."
+            ]
+          },
+          {
+            "id": "contract",
+            "q": "Що таке contract testing — мій рівень",
+            "a": [
+              "Контракт — домовленість: поле є, тип такий. Контрактні тести падають, коли продюсер і консьюмер роз’їхались.",
+              "Схему перевіряю в Postman/Playwright. Pact як комерційний досвід не тягну."
+            ]
+          },
+          {
+            "id": "api-chain",
+            "q": "Ланцюжок запитів",
+            "a": [
+              "Chain — беру id з POST і віддаю в GET або DELETE. Не хардкоджу id, які вмирають після ресету.",
+              "Якщо POST впав — стоп. DELETE на undefined не кличу."
+            ],
+            "code": "const created = await request.post('/accounts', { data });\nconst id = (await created.json()).id;\nconst got = await request.get('/accounts/' + id);\nexpect(got.status()).toBe(200);"
+          }
+        ]
+      },
+      {
+        "id": "sql",
+        "title": "SQL",
+        "items": [
+          {
+            "id": "sql-what",
+            "q": "Що таке SQL для мене як QA?",
+            "a": [
+              "SQL — мова реляційних баз: таблиці, рядки, колонки. Я не DBA. SQL для перевірки даних, підготовки тестових даних і звірки API vs БД.",
+              "SELECT читає. WHERE фільтрує. JOIN з’єднує таблиці."
+            ]
+          },
+          {
+            "id": "sql-where",
+            "q": "SELECT і WHERE",
+            "a": [
+              "SELECT колонки FROM таблиця. WHERE лишає рядки, які підходять. =, <>, LIKE, IN.",
+              "SELECT * у перевірці не пишу, якщо треба два поля. Знаю, що асертаю."
+            ],
+            "code": "SELECT id, status\nFROM accounts\nWHERE holder = 'Ada Chen';"
+          },
+          {
+            "id": "sql-join",
+            "q": "INNER JOIN vs LEFT JOIN",
+            "a": [
+              "JOIN з’єднує таблиці по ключу. INNER JOIN лишає рядки, які є в обох.",
+              "LEFT JOIN лишає всі рядки зліва. Якщо справа немає — NULL. LEFT, коли рахунки потрібні навіть без переказу."
+            ],
+            "code": "accounts a\nINNER JOIN transfers t ON t.from_id = a.id\n  → only accounts that sent money\n\naccounts a\nLEFT JOIN transfers t ON t.from_id = a.id\n  → all accounts, transfer columns may be NULL"
+          },
+          {
+            "id": "sql-group",
+            "q": "GROUP BY і HAVING",
+            "a": [
+              "GROUP BY збирає рядки в кошики. COUNT, SUM, AVG — на кошик.",
+              "HAVING фільтрує після групи. WHERE — до. Приклад: статуси, де більше 10 рядків."
+            ],
+            "code": "SELECT status, COUNT(*) AS n\nFROM accounts\nGROUP BY status\nHAVING COUNT(*) > 10;"
+          },
+          {
+            "id": "sql-null",
+            "q": "Що таке NULL?",
+            "a": [
+              "NULL — невідомо / порожньо. NULL = NULL не true. Пишу IS NULL або IS NOT NULL.",
+              "Коли звіряю API і БД: порожній рядок — це не NULL."
+            ]
+          },
+          {
+            "id": "sql-api",
+            "q": "Звірка API і бази",
+            "a": [
+              "Після POST роблю SELECT рядка. Якщо UI 100, а в базі 90 — баг не лише в кнопці.",
+              "Зводжу типи: гроші, дати, статуси. Сирі рядки всліпу не порівнюю."
+            ]
+          },
+          {
+            "id": "sql-index",
+            "q": "Що таке індекс — погляд QA",
+            "a": [
+              "Індекс — структура пошуку. WHERE стає швидшим. Індекси не проєктую.",
+              "Якщо репорт-запит повільний, можу сказати розробнику про індекс. DBA я не є."
+            ]
+          },
+          {
+            "id": "sql-inject",
+            "q": "SQL injection — мій рівень",
+            "a": [
+              "SQL injection — коли ввід юзера стає частиною запиту і змінює його. Параметризовані запити це ріжуть.",
+              "Security-тестувальником не є. Можу спробувати лапки в пошуку як негатив. Пентест не заявляю."
+            ]
+          }
+        ]
+      },
+      {
+        "id": "process",
+        "title": "Процес",
+        "items": [
+          {
+            "id": "intro-timeline",
+            "q": "Яка історія до якої роботи",
+            "a": [
+              "RIA.com: єдиний QA. Спочатку manual. Потім Java, Selenium, REST Assured. SQL і БД. Нотифікації з бази для менеджерів.",
+              "Clear Junction: FinTech, Access and Identity. Python, pytest, Selenium, Docker. Пізніше Playwright. Не payment-provider expert.",
+              "FRACTAL: перший QA. Процес, доки, регресія, потім Playwright UI плюс API і Jenkins."
+            ]
+          },
+          {
+            "id": "strategy-plan",
+            "q": "Тест-стратегія vs тест-план",
+            "a": [
+              "Стратегія відповідає як тестуємо: рівні, інструменти, ризики, що в CI. План ближче до конкретного прогону: скоуп релізу, хто, коли.",
+              "На новому проєкті спочатку стратегія: критичні флоу, API+UI, Jenkins. Потім коротший план на спринт."
+            ]
+          },
+          {
+            "id": "shift-left",
+            "q": "Що таке shift-left?",
+            "a": [
+              "Shift-left — QA дивиться роботу раніше: коментарі до тікета до коду, приклади, ризики.",
+              "Так і робив: тікет ішов у QA до розробки. Погані вимоги не чекали кінця."
+            ]
+          },
+          {
+            "id": "risk-based",
+            "q": "Ризик-орієнтоване тестування",
+            "a": [
+              "Більше часу там, де фейл дорогий: гроші, доступ, дані. Платежі, ролі, freeze — більше кейсів і негативу.",
+              "Статична сторінка однією мовою — smoke, не 40 UI-тестів."
+            ]
+          },
+          {
+            "id": "test-design",
+            "q": "EP, BVA, pairwise",
+            "a": [
+              "EP — клас еквівалентності: одне значення за групу. BVA — межа: 0, 1, max. Pairwise — кожна пара параметрів, не повна матриця.",
+              "Pairwise ріже кількість і все одно б’є комбінації. Для цього був pairwise-online."
+            ]
+          },
+          {
+            "id": "coverage",
+            "q": "Як рахую coverage автоматизації",
+            "a": [
+              "Немає TMS-цифри, яку доведу. Дивлюсь критичні флоу в CI / ще ручні / занадто нестабільні для авто.",
+              "Не кажу 90%, якщо не можу показати підрахунок."
+            ]
+          },
+          {
+            "id": "not-automate",
+            "q": "Що не автоматизую",
+            "a": [
+              "Не автоматизую флоу, який змінюється щотижня, разові перевірки і кейс без assert у CI.",
+              "Exploratory і перший погляд на новий екран спочатку лишаю manual."
+            ]
+          },
+          {
+            "id": "flaky",
+            "q": "Що таке flaky і що з ним роблю",
+            "a": [
+              "Flaky — то падає, то ні, продукт не змінювали. Причини: wait, спільні дані, час, parallel.",
+              "Quarantine або skip лише поки фікшу. Дивлюсь trace, network, ізоляцію. Hard wait — не перший фікс."
+            ]
+          },
+          {
+            "id": "rca",
+            "q": "Як шукаю root cause",
+            "a": [
+              "RCA — аналіз кореневої причини. Відтворюю. Далі логи, DevTools network, тіло API, БД.",
+              "Шукаю причину, не лише баг-репорт. Якщо застряг — питаю розробника."
+            ]
+          },
+          {
+            "id": "first-qa",
+            "q": "Перший QA на проєкті",
+            "a": [
+              "Немає процесу: вчу продукт і доки, критичний флоу юзера, happy path, потім негатив.",
+              "Далі регресія, потім автоматизація і CI. Потім другий QA може взяти manual, я лишаюсь на авто. Це FRACTAL."
+            ]
+          }
+        ]
+      }
+    ]
+  },
   "featured": {
     "title": "IT lecture notes",
     "lead": "Публічний конспект для навчання і співбесід. Мережа, QA/Playwright, Git/Jenkins, SQL/API, Java/JS. Також є нотатки по Docker, Kubernetes і RabbitMQ.",
@@ -78,7 +1043,7 @@
     {
       "title": "Що вчу зараз",
       "paragraphs": [
-        "Підготовка по Playwright: fixtures, storageState, APIRequest, стабільні локатори, чому тест flaky.",
+        "Підготовка розкладена по темах: JavaScript, Git, CI, Playwright, фреймворки, паттерни, API, SQL, процес.",
         "Як спокійно пояснити фреймворк і джоби в Jenkins (merge request, гілка, nightly).",
         "Spoken English для робочих відповідей. Рівень — Upper-Intermediate. Так і кажу.",
         "SQL і API для розбору дефектів."

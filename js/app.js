@@ -7,6 +7,7 @@
   let chrome = { data: null, site: null, lang: "en" };
   let paintProjects = () => {};
   let paintQa = () => {};
+  let paintPrep = () => {};
   let toastTimer = 0;
 
   const el = (tag, props, children) => {
@@ -102,8 +103,9 @@
     return rootPath + "#" + hash;
   }
 
-  function notesHref() {
-    return page === "notes" ? "./" : base + "notes/";
+  function notesHref(hash) {
+    const path = page === "notes" ? "./" : base + "notes/";
+    return hash ? path + "#" + hash : path;
   }
 
   function qaHref(hash) {
@@ -484,6 +486,15 @@
         run: () => toggleTheme(),
       },
     ];
+    if (data.prep) {
+      items.push({
+        id: "interview-prep",
+        label: data.prep.title,
+        hint: nav.notes,
+        href: notesHref(data.prep.id || "interview-prep"),
+        notesId: data.prep.id || "interview-prep",
+      });
+    }
     const guide = chrome.guide;
     if (page === "sandbox" && guide && guide.sections) {
       guide.sections.forEach((section) => {
@@ -523,6 +534,24 @@
         });
       });
     });
+    prepGroups(data.prep).forEach((group) => {
+      items.push({
+        id: "prep-g-" + group.id,
+        label: group.title,
+        hint: (data.prep && data.prep.title) || nav.notes,
+        href: notesHref(group.id),
+        notesId: group.id,
+      });
+      (group.items || []).forEach((item) => {
+        items.push({
+          id: "prep-" + item.id,
+          label: item.q,
+          hint: group.title,
+          href: notesHref(item.id),
+          notesId: item.id,
+        });
+      });
+    });
     return items;
   }
 
@@ -536,6 +565,11 @@
     if (item.qaId && page === "qa") {
       location.hash = item.qaId;
       paintQa();
+      return;
+    }
+    if (item.notesId && page === "notes") {
+      location.hash = item.notesId;
+      paintPrep();
       return;
     }
     if (item.section && page === "home") {
@@ -1167,9 +1201,42 @@
     if (term) startTerminal(data.terminal, term);
   }
 
+  function prepGroups(prep) {
+    if (!prep) return [];
+    if (prep.groups && prep.groups.length) return prep.groups;
+    if (prep.items && prep.items.length) {
+      return [{ id: "cards", title: prep.title, items: prep.items }];
+    }
+    return [];
+  }
+
+  function prepAnswers(item) {
+    return Array.isArray(item.a) ? item.a : item.a ? [item.a] : [];
+  }
+
+  function renderPrepCard(item) {
+    const details = el("details", { id: item.id, class: "prep-card" }, [
+      el("summary", { text: item.q }),
+      el("div", { class: "qa-answer" }, [
+        ...prepAnswers(item).map((text) => el("p", { text: text })),
+        item.code ? el("pre", { class: "guide-code", text: item.code }) : null,
+      ]),
+    ]);
+    details.addEventListener("toggle", () => {
+      if (details.open) history.replaceState(null, "", "#" + item.id);
+    });
+    return details;
+  }
+
+  function openNotesPrepHash() {
+    paintPrep();
+  }
+
   function renderNotes(data) {
     const main = document.getElementById("main");
     const featured = data.featured;
+    const prep = data.prep;
+    const groups = prepGroups(prep);
     const featuredBlock = featured
       ? el("article", { class: "note featured-note" }, [
           el("h2", { text: featured.title }),
@@ -1200,19 +1267,150 @@
           ]),
         ])
       : null;
+
+    let prepTag = "";
+    const prepList = el("div", { class: "prep-list", "data-testid": "interview-prep" });
+    const prepSearch = el("input", {
+      class: "filter",
+      type: "search",
+      placeholder: (prep && prep.searchPlaceholder) || "",
+      "aria-label": (prep && prep.searchPlaceholder) || "",
+      "data-testid": "prep-search",
+    });
+    const prepTags = el("div", {
+      class: "qa-tags",
+      role: "group",
+      "aria-label": prep && prep.title,
+      "data-testid": "prep-tags",
+    });
+
+    paintPrep = () => {
+      if (!prep) return;
+      const id = hashId();
+      if (id && id !== (prep.id || "interview-prep")) {
+        const asGroup = groups.find((group) => group.id === id);
+        const asItem = groups.find((group) => (group.items || []).some((item) => item.id === id));
+        if (asGroup) prepTag = asGroup.id;
+        else if (asItem) prepTag = asItem.id;
+      }
+      const q = (prepSearch.value || "").trim().toLowerCase();
+      prepTags.querySelectorAll("[data-prep-tag]").forEach((btn) => {
+        btn.setAttribute("aria-pressed", String(btn.dataset.prepTag === prepTag));
+      });
+      prepList.replaceChildren();
+      let shown = 0;
+      groups.forEach((group) => {
+        if (!q && prepTag && group.id !== prepTag) return;
+        const items = (group.items || []).filter((item) => {
+          if (!q) return true;
+          return (item.q + " " + prepAnswers(item).join(" ")).toLowerCase().includes(q);
+        });
+        if (!items.length) return;
+        shown += items.length;
+        const matchItem = items.some((item) => item.id === id);
+        const openGroup = Boolean(prepTag) || Boolean(q) || id === group.id || matchItem;
+        const topic = el("details", {
+          class: "prep-topic",
+          id: group.id,
+        }, [
+          el("summary", { text: group.title + " · " + items.length }),
+          el("div", { class: "prep-cards" }, items.map(renderPrepCard)),
+        ]);
+        topic.addEventListener("toggle", () => {
+          if (paintPrep.syncing || q) return;
+          if (topic.open) history.replaceState(null, "", "#" + group.id);
+        });
+        prepList.append(topic);
+        paintPrep.syncing = true;
+        topic.open = openGroup;
+        paintPrep.syncing = false;
+      });
+      if (!shown) {
+        prepList.append(el("p", { class: "lede", text: prep.emptyFilter || "" }));
+      }
+      if (id && id !== (prep.id || "interview-prep")) {
+        const node = document.getElementById(id);
+        if (node) {
+          paintPrep.syncing = true;
+          if (node.tagName === "DETAILS") node.open = true;
+          paintPrep.syncing = false;
+          node.scrollIntoView({ behavior: "instant", block: "start" });
+        }
+      }
+    };
+
+    if (prep) {
+      prepTags.append(
+        el("button", {
+          class: "kind-filter",
+          type: "button",
+          "data-prep-tag": "",
+          text: prep.allLabel || (chrome.lang === "uk" ? "Усі теми" : "All topics"),
+          onClick: () => {
+            prepTag = "";
+            prepSearch.value = "";
+            if (location.hash) history.replaceState(null, "", location.pathname + location.search);
+            paintPrep();
+          },
+        })
+      );
+      groups.forEach((group) => {
+        prepTags.append(
+          el("button", {
+            class: "kind-filter",
+            type: "button",
+            "data-prep-tag": group.id,
+            text: group.title,
+            onClick: () => {
+              prepTag = group.id;
+              prepSearch.value = "";
+              history.replaceState(null, "", "#" + group.id);
+              paintPrep();
+            },
+          })
+        );
+      });
+      prepSearch.addEventListener("input", () => {
+        paintPrep();
+      });
+    }
+
+    const prepBlock = prep
+      ? el("article", {
+          class: "note",
+          id: prep.id || "interview-prep",
+        }, [
+          el("h2", {
+            text: prep.title + " · " + groups.reduce((n, group) => n + ((group.items || []).length), 0),
+          }),
+          prep.lead ? el("p", { text: prep.lead }) : null,
+          prepSearch,
+          prepTags,
+          prepList,
+        ])
+      : null;
+    const heroButtons = [
+      prep
+        ? el("a", {
+            class: "btn btn-primary",
+            href: "#" + (prep.id || "interview-prep"),
+            text: prep.title,
+          })
+        : null,
+      el("a", {
+        class: prep ? "btn btn-ghost" : "btn btn-primary",
+        href: qaHref(),
+        text: data.qaCta,
+      }),
+    ];
     main.replaceChildren(
       ...[
         el("header", { class: "hero" }, [
           el("h1", { text: data.title }),
           el("p", { class: "pitch", text: data.intro }),
-          el("div", { class: "hero-actions" }, [
-            el("a", {
-              class: "btn btn-primary",
-              href: qaHref(),
-              text: data.qaCta,
-            }),
-          ]),
+          el("div", { class: "hero-actions" }, heroButtons),
         ]),
+        prepBlock,
         featuredBlock,
         ...data.sections.map((section) =>
           el("article", { class: "note" }, [
@@ -1222,6 +1420,13 @@
         ),
       ].filter(Boolean)
     );
+    if (!window.__ngNotesHash) {
+      window.__ngNotesHash = true;
+      window.addEventListener("hashchange", () => {
+        if (document.documentElement.dataset.page === "notes") paintPrep();
+      });
+    }
+    paintPrep();
   }
 
   function renderQa(data) {

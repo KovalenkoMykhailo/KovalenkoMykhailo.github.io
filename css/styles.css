@@ -664,6 +664,30 @@ html[data-theme="dark"] .chip-ico-dark {
   margin-top: 0.85rem;
 }
 
+.prep-list {
+  margin-top: 0.35rem;
+}
+
+.prep-list details {
+  box-shadow: none;
+}
+
+.prep-topic > summary {
+  font-size: 1.02rem;
+}
+
+.prep-cards {
+  padding: 0.15rem 0.65rem 0.65rem;
+}
+
+.prep-card {
+  background: var(--bg);
+}
+
+.prep-list .guide-code {
+  margin-top: 0.35rem;
+}
+
 .note h3,
 .project h3 {
   margin: 0 0 0.35rem;

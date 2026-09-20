@@ -1,6 +1,6 @@
 {
-  "metaTitle": "Михайло Коваленко — Senior General QA Engineer",
-  "metaDescription": "Senior General QA Engineer. TypeScript, Playwright, API та UI. Досвід у FinTech. Remote, relocate, Дніпро.",
+  "metaTitle": "Михайло Коваленко — Mykhailo Kovalenko | Senior General QA Engineer",
+  "metaDescription": "Резюме Михайла Коваленка (Коваленко Михайло, Mykhailo Kovalenko, Kovalenko Mykhailo). Senior General QA Engineer. TypeScript, Playwright, API та UI. Remote.",
   "nav": {
     "home": "CV",
     "notes": "Конспект",
@@ -22,6 +22,7 @@
   },
   "hero": {
     "name": "Михайло Коваленко",
+    "aka": "Mykhailo Kovalenko · Коваленко Михайло · Kovalenko Mykhailo",
     "role": "Senior General QA Engineer",
     "badge": "Open to work · Remote",
     "location": "Remote · Relocate · Дніпро",

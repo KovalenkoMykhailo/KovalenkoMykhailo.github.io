@@ -5,6 +5,17 @@
   "github": "https://github.com/KovalenkoMykhailo",
   "pdf": "cv/Kovalenko_Mykhailo_Senior_General_QA_Engineer.pdf",
   "siteUrl": "https://kovalenkomykhailo.github.io",
+  "person": {
+    "name": "Mykhailo Kovalenko",
+    "givenName": "Mykhailo",
+    "familyName": "Kovalenko",
+    "jobTitle": "Senior General QA Engineer",
+    "alternateName": [
+      "Kovalenko Mykhailo",
+      "Михайло Коваленко",
+      "Коваленко Михайло"
+    ]
+  },
   "version": "1.3.0",
   "branch": "main",
   "commit": "93c8941",

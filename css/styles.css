@@ -329,7 +329,15 @@ a:hover {
   font-weight: 600;
   letter-spacing: -0.03em;
   line-height: 1.12;
-  margin: 0 0 0.45rem;
+  margin: 0 0 0.28rem;
+}
+
+.hero-aka {
+  margin: 0 0 0.55rem;
+  color: var(--muted);
+  font-size: 1.02rem;
+  font-weight: 500;
+  line-height: 1.4;
 }
 
 .role {
@@ -2348,6 +2356,13 @@ html[data-theme="dark"] .ci-check {
 
 .ci-copy {
   margin: 0.45rem 0 0;
+}
+
+.seo-name {
+  margin: 0.35rem 0 0;
+  color: var(--muted);
+  font-size: 0.88rem;
+  text-align: center;
 }
 
 @media (min-width: 901px) {

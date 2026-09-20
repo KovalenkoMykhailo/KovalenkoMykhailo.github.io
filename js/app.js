@@ -48,6 +48,8 @@
   }
 
   function detectLang() {
+    const q = new URLSearchParams(location.search).get("lang");
+    if (q === "uk" || q === "en") return q;
     const stored = localStorage.getItem("site-lang");
     if (stored === "uk" || stored === "en") return stored;
     const nav = (navigator.language || "").toLowerCase();
@@ -81,7 +83,115 @@
 
   function setLang(lang) {
     localStorage.setItem("site-lang", lang);
-    location.reload();
+    const url = new URL(location.href);
+    if (lang === "uk") url.searchParams.set("lang", "uk");
+    else url.searchParams.delete("lang");
+    location.assign(url.pathname + url.search + url.hash);
+  }
+
+  function pagePath() {
+    if (page === "home") return "/";
+    if (page === "sandbox-docs") return "/sandbox/";
+    return "/" + page + "/";
+  }
+
+  function originUrl(site) {
+    return String((site && site.siteUrl) || "https://kovalenkomykhailo.github.io").replace(/\/$/, "");
+  }
+
+  function setMetaByAttr(attr, key, value) {
+    if (!value) return;
+    let node = document.head.querySelector("meta[" + attr + '="' + key + '"]');
+    if (!node) {
+      node = document.createElement("meta");
+      node.setAttribute(attr, key);
+      document.head.appendChild(node);
+    }
+    node.setAttribute("content", value);
+  }
+
+  function setHreflang(lang, href) {
+    let node = document.head.querySelector('link[rel="alternate"][hreflang="' + lang + '"]');
+    if (!node) {
+      node = document.createElement("link");
+      node.setAttribute("rel", "alternate");
+      node.setAttribute("hreflang", lang);
+      document.head.appendChild(node);
+    }
+    node.setAttribute("href", href);
+  }
+
+  function applySeo(data, site, lang) {
+    const origin = originUrl(site);
+    const path = pagePath();
+    const abs = origin + path;
+    const ukUrl = abs + "?lang=uk";
+    const person = (site && site.person) || {};
+    const names = [person.name].concat(person.alternateName || []).filter(Boolean);
+    const title = data.metaTitle || names[0] || document.title;
+    const desc = data.metaDescription || "";
+
+    document.title = title;
+    document.documentElement.lang = lang === "uk" ? "uk" : "en";
+    setMetaByAttr("name", "description", desc);
+    setMetaByAttr("name", "author", names.join(", "));
+    setMetaByAttr("name", "keywords", names.concat(["QA Automation", "Playwright"]).join(", "));
+    setMetaByAttr("property", "og:title", title);
+    setMetaByAttr("property", "og:description", desc);
+    setMetaByAttr("property", "og:url", lang === "uk" ? ukUrl : abs);
+    setMetaByAttr("property", "og:locale", lang === "uk" ? "uk_UA" : "en_US");
+    setMetaByAttr("property", "og:locale:alternate", lang === "uk" ? "en_US" : "uk_UA");
+    setMetaByAttr("name", "twitter:title", title);
+    setMetaByAttr("name", "twitter:description", desc);
+
+    const canonical = document.head.querySelector('link[rel="canonical"]');
+    if (canonical) canonical.setAttribute("href", lang === "uk" ? ukUrl : abs);
+
+    setHreflang("en", abs);
+    setHreflang("uk", ukUrl);
+    setHreflang("x-default", abs);
+
+    const sameAs = [site.linkedin, site.github, site.telegram].filter(Boolean);
+    const graph = {
+      "@context": "https://schema.org",
+      "@graph": [
+        {
+          "@type": "Person",
+          "@id": origin + "/#person",
+          name: person.name || "Mykhailo Kovalenko",
+          alternateName: person.alternateName || [],
+          givenName: person.givenName || "Mykhailo",
+          familyName: person.familyName || "Kovalenko",
+          url: origin + "/",
+          image: origin + "/assets/og.png",
+          jobTitle: person.jobTitle || "Senior General QA Engineer",
+          email: site.email || undefined,
+          sameAs: sameAs,
+          address: {
+            "@type": "PostalAddress",
+            addressCountry: "UA",
+            addressLocality: "Dnipro",
+          },
+        },
+        {
+          "@type": "WebSite",
+          "@id": origin + "/#website",
+          url: origin + "/",
+          name: person.name || "Mykhailo Kovalenko",
+          alternateName: person.alternateName || [],
+          inLanguage: ["en", "uk"],
+          publisher: { "@id": origin + "/#person" },
+        },
+      ],
+    };
+    let ld = document.getElementById("seo-person");
+    if (!ld) {
+      ld = document.createElement("script");
+      ld.type = "application/ld+json";
+      ld.id = "seo-person";
+      document.head.appendChild(ld);
+    }
+    ld.textContent = JSON.stringify(graph);
   }
 
   function contentFile(lang) {
@@ -1013,6 +1123,7 @@
         el("div", { class: "hero-copy" }, [
           data.hero.badge ? el("p", { class: "badge badge-open", text: data.hero.badge }) : null,
           el("h1", { text: data.hero.name }),
+          data.hero.aka ? el("p", { class: "hero-aka", text: data.hero.aka }) : null,
           el("p", { class: "role", text: data.hero.role }),
           el("p", { class: "location", text: data.hero.location }),
           el("p", { class: "pitch", text: data.hero.pitch }),
@@ -2094,6 +2205,8 @@
   function renderFooter(text, site) {
     const foot = document.getElementById("site-footer");
     const passing = !site || site.ci === "passing";
+    const person = (site && site.person) || {};
+    const aka = [person.name].concat(person.alternateName || []).filter(Boolean).join(" · ");
     foot.replaceChildren(
       el("div", { class: "ci-footer", "data-testid": "ci-footer" }, [
         el("span", { class: "ci-ver", text: "v" + ((site && site.version) || "dev") }),
@@ -2109,13 +2222,21 @@
         }),
         el("span", { class: "ci-check", "aria-hidden": "true", text: passing ? "✓" : "×" }),
       ]),
-      el("p", { class: "ci-copy", text: text })
+      el("p", { class: "ci-copy", text: text }),
+      aka ? el("p", { class: "seo-name", text: aka }) : null
     );
   }
 
   async function init() {
     const lang = detectLang();
     root.lang = lang === "uk" ? "uk" : "en";
+    if (lang === "uk") {
+      const url = new URL(location.href);
+      if (url.searchParams.get("lang") !== "uk") {
+        url.searchParams.set("lang", "uk");
+        history.replaceState({}, "", url.pathname + url.search + url.hash);
+      }
+    }
     applyTheme(detectTheme());
 
     try {
@@ -2128,9 +2249,7 @@
       const guide = page === "sandbox" ? extra : null;
       chrome = { data, site, lang, guide };
 
-      document.title = data.metaTitle;
-      const desc = document.querySelector('meta[name="description"]');
-      if (desc) desc.setAttribute("content", data.metaDescription);
+      applySeo(data, site, lang);
 
       renderHeader(data.nav, site, lang);
       bindGlobalKeys();

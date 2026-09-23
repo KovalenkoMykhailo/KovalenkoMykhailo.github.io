@@ -26,7 +26,7 @@
   "prep": {
     "id": "interview-prep",
     "title": "Готуюсь до співбесід",
-    "lead": "Близько 100 spoken-карток під senior AQA: JavaScript, Git, CI, Playwright, фреймворки, паттерни, API, SQL, процес. Фільтр теми, одне питання. У відповіді спочатку що означає слово, потім що з цим роблю. Код і короткі схеми, де треба. Нова картка: prep.groups[].items у notes-uk.json і notes-en.json, той самий id.",
+    "lead": "Spoken-картки під senior AQA: JavaScript, Git, CI, Playwright, фреймворки, паттерни, API, SQL, процес, плюс група під вакансію Heartpace. Фільтр теми, одне питання. У відповіді спочатку що означає слово, потім що з цим роблю. Код і короткі схеми, де треба. Нова картка: prep.groups[].items у notes-uk.json і notes-en.json, той самий id.",
     "allLabel": "Усі теми",
     "searchPlaceholder": "Пошук картки",
     "emptyFilter": "У цій темі порожньо.",
@@ -39,11 +39,21 @@
             "id": "event-loop",
             "q": "Що таке event loop?",
             "a": [
-              "Event loop — черга JavaScript. Код у твоєму скрипті йде в одному потоці: одночасно виконується одна штука.",
-              "Порядок: спочатку весь sync. Потім microtasks (Promise.then, queueMicrotask, код після await). Потім macrotasks (setTimeout, setInterval). Далі коло.",
-              "setTimeout(fn, 0) все одно в кінці. Event loop — це не while."
+              "Event loop — як JavaScript обирає наступну роботу. Скрипт — один потік. Одночасно виконується одна штука. Call stack — код, який біжить зараз.",
+              "Порядок: спочатку весь sync. Потім уся черга microtask: Promise.then, queueMicrotask, код після await. Потім одна macrotask: setTimeout, setInterval. Знову microtasks.",
+              "setTimeout(fn, 0) — це не зараз. Це macrotask, тому чекає. Event loop — це не while у тесті."
             ],
             "code": "console.log(1);\nsetTimeout(() => console.log(2), 0);\nPromise.resolve().then(() => console.log(3));\nconsole.log(4);\n// 1, 4, 3, 2\n\nsync → microtask (Promise) → macrotask (timeout)"
+          },
+          {
+            "id": "event-loop-order",
+            "q": "Ось снипет: що надрукує і чому?",
+            "a": [
+              "Дають console.log, setTimeout 0 і Promise.then. Спочатку кажу цифри, потім правило.",
+              "Sync зараз: 1 і 4. Promise.then — microtask: 3. setTimeout — macrotask: 2. Виходить 1, 4, 3, 2.",
+              "Якщо додадуть ще .then — він теж раніше за timeout. Microtasks спочатку спустошують."
+            ],
+            "code": "console.log('A');\nsetTimeout(() => console.log('B'), 0);\nPromise.resolve().then(() => console.log('C'));\nPromise.resolve().then(() => console.log('D'));\nconsole.log('E');\n// A, E, C, D, B"
           },
           {
             "id": "clone",
@@ -982,6 +992,117 @@
             "a": [
               "Немає процесу: вчу продукт і доки, критичний флоу юзера, happy path, потім негатив.",
               "Далі регресія, потім автоматизація і CI. Потім другий QA може взяти manual, я лишаюсь на авто. Це FRACTAL."
+            ]
+          }
+        ]
+      },
+      {
+        "id": "heartpace",
+        "title": "Heartpace",
+        "items": [
+          {
+            "id": "hp-intro",
+            "q": "Розкажи про себе (20 секунд)",
+            "a": [
+              "I am a QA Automation Engineer. I have more than five years in testing. First I was a manual QA. Then I moved to automation.",
+              "RIA.com: only QA. Java, Selenium, REST Assured. Clear Junction: FinTech, Access and Identity. Python, pytest, Selenium, Docker. Later Playwright.",
+              "FRACTAL: first QA. Process, docs, regression. Then Playwright, TypeScript, Jenkins. I can start after a short notice."
+            ]
+          },
+          {
+            "id": "hp-why",
+            "q": "Чому ця роль і чому Heartpace?",
+            "a": [
+              "I want a product role. Manual and automation together. Not only checklists.",
+              "You use Playwright and TypeScript. That is my main stack now. Fully remote from Ukraine is OK for this job.",
+              "I like ownership. I build process, then tests, then CI. Heartpace is an HR product for Europe. I want to raise release confidence, not only run cases."
+            ]
+          },
+          {
+            "id": "hp-english",
+            "q": "Який у тебе рівень англійської?",
+            "a": [
+              "My English is Intermediate, B1. I speak in short sentences. I understand the work talk.",
+              "I do not say Upper-Intermediate. I can write tests and talk about bugs in English."
+            ]
+          },
+          {
+            "id": "hp-testrail",
+            "q": "Чи знаєш TestRail?",
+            "a": [
+              "I write test plans, cases, and checklists. I track bugs in a tracker. I do not have commercial TestRail.",
+              "TestRail is a TMS: project, suite, case, run, result. I can learn it in the first week. I do not invent a TMS coverage number."
+            ]
+          },
+          {
+            "id": "hp-questions",
+            "q": "Що питаю рекрутера",
+            "a": [
+              "How big is the QA team? How much is manual, how much is auto? Who owns the Playwright suite today?",
+              "Do you use TestRail for all cases? What is the live task — a new test or a flake fix?",
+              "If they ask salary I say about 3500 to 4000 dollars. I do not start with money."
+            ]
+          },
+          {
+            "id": "hp-product",
+            "q": "Що таке Heartpace? Як тестую?",
+            "a": [
+              "Heartpace is an HR system. Employee data, onboarding, reviews, goals, salary, surveys, integrations.",
+              "I am not an HR product expert. I tested roles and permissions on a B2B payment platform. That maps to access in HR.",
+              "I test risk first: personal data, access, salary-like fields, then one integration."
+            ]
+          },
+          {
+            "id": "hp-iso",
+            "q": "ISO 27001 і GDPR — що кажу?",
+            "a": [
+              "You have ISO 27001 and GDPR. I follow the rules. I am not a security tester and I am not the ISO owner.",
+              "I do not put secrets in tests or in AI prompts. Passwords stay in env."
+            ]
+          },
+          {
+            "id": "hp-week1",
+            "q": "Що роблю на першому тижні?",
+            "a": [
+              "I read the product, TestRail, and the Playwright repo. I run the suite. I note flakes.",
+              "I map critical flows: login, employee data, roles, one integration.",
+              "I add one stable test and one API check. I ask what release confidence means here."
+            ]
+          },
+          {
+            "id": "hp-live-task",
+            "q": "Як проходжу live-task у Playwright",
+            "a": [
+              "I read the task out loud. I say the steps. Then I write.",
+              "I use getByRole or a test id. I wait with expect, not waitForTimeout. Passwords stay in env or a fixture.",
+              "I explain in short English: what I test, what I assert, what I add next. Drill: empty password keeps the login form on the Console suite."
+            ],
+            "code": "await loginPage.open();\nawait loginPage.password.fill('');\nawait loginPage.submit.click();\nawait expect(loginPage.form).toBeVisible();\nawait expect(page.getByTestId('console-shell')).toHaveCount(0);"
+          },
+          {
+            "id": "hp-result",
+            "q": "Розкажи про результат / ownership",
+            "a": [
+              "At FRACTAL I was first QA. I made process and regression. Then Playwright tests and Jenkins.",
+              "Manual regression became much faster — about 70 percent less. I do not say 90 percent if I cannot show the count.",
+              "I fix flaky tests. I want a green CI, not a big red report."
+            ]
+          },
+          {
+            "id": "hp-ai",
+            "q": "Як використовую AI в QA",
+            "a": [
+              "I use Cursor every day. I review all generated code. I do not trust it blind.",
+              "AI helps with cases and boilerplate. I still decide what to automate. No tokens and no employee data in the prompt."
+            ]
+          },
+          {
+            "id": "hp-no-claim",
+            "q": "Чого не кажу на цій вакансії",
+            "a": [
+              "I do not speak Swedish. I can work in English. Ukrainian is fine for part of the team.",
+              "I do not have GraphQL or RabbitMQ as a commercial duty. I test REST APIs and integrations.",
+              "Clear Junction automation was Python, pytest, Selenium, Docker. Playwright from scratch is FRACTAL."
             ]
           }
         ]

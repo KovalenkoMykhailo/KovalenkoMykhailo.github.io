@@ -26,7 +26,7 @@
   "prep": {
     "id": "interview-prep",
     "title": "Interview prep",
-    "lead": "About 100 spoken cards for a senior AQA interview: JavaScript, Git, CI, Playwright, frameworks, patterns, API, SQL, process. Filter a topic, open one question. Each answer names the term, then what I do with it. Code and tiny schemas where they help. To add a card: prep.groups[].items in notes-en.json and notes-uk.json, same id.",
+    "lead": "Spoken cards for a senior AQA interview: JavaScript, Git, CI, Playwright, frameworks, patterns, API, SQL, process, plus a Heartpace vacancy group. Filter a topic, open one question. Each answer names the term, then what I do with it. Code and tiny schemas where they help. To add a card: prep.groups[].items in notes-en.json and notes-uk.json, same id.",
     "allLabel": "All topics",
     "searchPlaceholder": "Search a card",
     "emptyFilter": "Nothing in this topic.",
@@ -39,11 +39,21 @@
             "id": "event-loop",
             "q": "What is the event loop?",
             "a": [
-              "Event loop is the queue of JavaScript. The engine is single-thread for your code. It runs one thing at a time.",
-              "Order: all sync code first. Then microtasks (Promise.then, queueMicrotask, code after await). Then macrotasks (setTimeout, setInterval). Then again.",
-              "setTimeout(fn, 0) still runs last. Event loop is not a while loop."
+              "Event loop is how JavaScript picks the next job. My script is one thread. One thing at a time. The call stack is the code that runs now.",
+              "Order: all sync first. Then the whole microtask queue: Promise.then, queueMicrotask, code after await. Then one macrotask: setTimeout, setInterval. Then microtasks again.",
+              "setTimeout(fn, 0) is not now. It is a macrotask, so it waits. Event loop is not a while loop in my test."
             ],
             "code": "console.log(1);\nsetTimeout(() => console.log(2), 0);\nPromise.resolve().then(() => console.log(3));\nconsole.log(4);\n// 1, 4, 3, 2\n\nsync → microtask (Promise) → macrotask (timeout)"
+          },
+          {
+            "id": "event-loop-order",
+            "q": "This snippet: what prints, and why?",
+            "a": [
+              "They show console.log, setTimeout 0, and Promise.then. I say the numbers first, then the rule.",
+              "Sync logs run now: 1 and 4. Promise.then is a microtask: 3. setTimeout is a macrotask: 2. So 1, 4, 3, 2.",
+              "If they add another .then, that also runs before the timeout. Microtasks empty first."
+            ],
+            "code": "console.log('A');\nsetTimeout(() => console.log('B'), 0);\nPromise.resolve().then(() => console.log('C'));\nPromise.resolve().then(() => console.log('D'));\nconsole.log('E');\n// A, E, C, D, B"
           },
           {
             "id": "clone",
@@ -982,6 +992,117 @@
             "a": [
               "No process: I learn the product and docs, find the critical user flow, write the happy path, then negatives.",
               "Then regression list, then automation and CI. Then a second QA can take manual while I stay on automation. This is FRACTAL."
+            ]
+          }
+        ]
+      },
+      {
+        "id": "heartpace",
+        "title": "Heartpace",
+        "items": [
+          {
+            "id": "hp-intro",
+            "q": "Tell me about yourself (20 seconds)",
+            "a": [
+              "I am a QA Automation Engineer. I have more than five years in testing. First I was a manual QA. Then I moved to automation.",
+              "RIA.com: only QA. Java, Selenium, REST Assured. Clear Junction: FinTech, Access and Identity. Python, pytest, Selenium, Docker. Later Playwright.",
+              "FRACTAL: first QA. Process, docs, regression. Then Playwright, TypeScript, Jenkins. I can start after a short notice."
+            ]
+          },
+          {
+            "id": "hp-why",
+            "q": "Why this role and why Heartpace?",
+            "a": [
+              "I want a product role. Manual and automation together. Not only checklists.",
+              "You use Playwright and TypeScript. That is my main stack now. Fully remote from Ukraine is OK for this job.",
+              "I like ownership. I build process, then tests, then CI. Heartpace is an HR product for Europe. I want to raise release confidence, not only run cases."
+            ]
+          },
+          {
+            "id": "hp-english",
+            "q": "What is your English level?",
+            "a": [
+              "My English is Intermediate, B1. I speak in short sentences. I understand the work talk.",
+              "I do not say Upper-Intermediate. I can write tests and talk about bugs in English."
+            ]
+          },
+          {
+            "id": "hp-testrail",
+            "q": "Do you know TestRail?",
+            "a": [
+              "I write test plans, cases, and checklists. I track bugs in a tracker. I do not have commercial TestRail.",
+              "TestRail is a TMS: project, suite, case, run, result. I can learn it in the first week. I do not invent a TMS coverage number."
+            ]
+          },
+          {
+            "id": "hp-questions",
+            "q": "Questions I ask the recruiter",
+            "a": [
+              "How big is the QA team? How much is manual, how much is auto? Who owns the Playwright suite today?",
+              "Do you use TestRail for all cases? What is the live task — a new test or a flake fix?",
+              "If they ask salary I say about 3500 to 4000 dollars. I do not start with money."
+            ]
+          },
+          {
+            "id": "hp-product",
+            "q": "What is Heartpace? How do I test it?",
+            "a": [
+              "Heartpace is an HR system. Employee data, onboarding, reviews, goals, salary, surveys, integrations.",
+              "I am not an HR product expert. I tested roles and permissions on a B2B payment platform. That maps to access in HR.",
+              "I test risk first: personal data, access, salary-like fields, then one integration."
+            ]
+          },
+          {
+            "id": "hp-iso",
+            "q": "ISO 27001 and GDPR — what do I say?",
+            "a": [
+              "You have ISO 27001 and GDPR. I follow the rules. I am not a security tester and I am not the ISO owner.",
+              "I do not put secrets in tests or in AI prompts. Passwords stay in env."
+            ]
+          },
+          {
+            "id": "hp-week1",
+            "q": "What do I do in week 1?",
+            "a": [
+              "I read the product, TestRail, and the Playwright repo. I run the suite. I note flakes.",
+              "I map critical flows: login, employee data, roles, one integration.",
+              "I add one stable test and one API check. I ask what release confidence means here."
+            ]
+          },
+          {
+            "id": "hp-live-task",
+            "q": "How I do the Playwright live task",
+            "a": [
+              "I read the task out loud. I say the steps. Then I write.",
+              "I use getByRole or a test id. I wait with expect, not waitForTimeout. Passwords stay in env or a fixture.",
+              "I explain in short English: what I test, what I assert, what I add next. Drill: empty password keeps the login form on the Console suite."
+            ],
+            "code": "await loginPage.open();\nawait loginPage.password.fill('');\nawait loginPage.submit.click();\nawait expect(loginPage.form).toBeVisible();\nawait expect(page.getByTestId('console-shell')).toHaveCount(0);"
+          },
+          {
+            "id": "hp-result",
+            "q": "Tell me about a result / ownership",
+            "a": [
+              "At FRACTAL I was first QA. I made process and regression. Then Playwright tests and Jenkins.",
+              "Manual regression became much faster — about 70 percent less. I do not say 90 percent if I cannot show the count.",
+              "I fix flaky tests. I want a green CI, not a big red report."
+            ]
+          },
+          {
+            "id": "hp-ai",
+            "q": "How I use AI in QA",
+            "a": [
+              "I use Cursor every day. I review all generated code. I do not trust it blind.",
+              "AI helps with cases and boilerplate. I still decide what to automate. No tokens and no employee data in the prompt."
+            ]
+          },
+          {
+            "id": "hp-no-claim",
+            "q": "What I do not claim on this vacancy",
+            "a": [
+              "I do not speak Swedish. I can work in English. Ukrainian is fine for part of the team.",
+              "I do not have GraphQL or RabbitMQ as a commercial duty. I test REST APIs and integrations.",
+              "Clear Junction automation was Python, pytest, Selenium, Docker. Playwright from scratch is FRACTAL."
             ]
           }
         ]

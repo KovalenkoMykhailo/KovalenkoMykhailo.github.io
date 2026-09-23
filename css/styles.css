@@ -463,6 +463,14 @@ section {
   color: var(--accent);
 }
 
+.wrap > section#contact.is-target,
+.wrap > section#contact:target {
+  box-shadow: none;
+  animation: none;
+  border-radius: 0;
+  background-color: transparent;
+}
+
 @keyframes section-arrive {
   from {
     background-color: var(--accent-soft);
@@ -986,6 +994,11 @@ details p {
   .wrap > section:target {
     animation: none;
     background-color: var(--accent-soft);
+  }
+
+  .wrap > section#contact.is-target,
+  .wrap > section#contact:target {
+    background-color: transparent;
   }
 }
 
